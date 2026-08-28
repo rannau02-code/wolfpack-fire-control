@@ -23,28 +23,17 @@ Der passende Weg auf Steam ist ein **Community-Guide**. Der taucht direkt auf de
 
 ---
 
-## Schritt 1 — Den Rechner ins Netz stellen
+## Schritt 1 — Den Rechner ins Netz stellen — **erledigt**
 
-Das Steam-Overlay hat einen eingebauten Browser, aber der kann **keine lokalen Dateien** öffnen (`file:///C:/...` funktioniert dort nicht). Die Seite braucht also eine Webadresse. Am einfachsten kostenlos über **GitHub Pages**:
+Das Steam-Overlay hat einen eingebauten Browser, aber der kann **keine lokalen Dateien** öffnen
+(`file:///C:/...` funktioniert dort nicht). Deshalb liegt der Rechner jetzt hier:
 
-1. Konto auf <https://github.com> anlegen, falls noch nicht vorhanden.
-2. Oben rechts **+ → New repository**.
-   - Name: z. B. `wolfpack-fire-control`
-   - **Public** auswählen
-   - **Create repository**
-3. Auf der leeren Repo-Seite auf **uploading an existing file** klicken.
-4. Die Datei `index.html` aus diesem Ordner ins Fenster ziehen. **Commit changes**.
-5. Oben auf **Settings** → links auf **Pages**.
-6. Unter *Branch* `main` und `/ (root)` auswählen → **Save**.
-7. Ein bis zwei Minuten warten, Seite neu laden. Oben steht dann die Adresse:
+**<https://rannau02-code.github.io/wolfpack-fire-control/>**
 
-   ```
-   https://DEINBENUTZERNAME.github.io/wolfpack-fire-control/
-   ```
+Repository: <https://github.com/rannau02-code/wolfpack-fire-control> (public — bei einem
+privaten Repository schaltet GitHub Pages die Seite nicht frei).
 
-Diese Adresse einmal im normalen Browser testen — Sprachumschalter oben rechts, eine Rechnung durchspielen.
-
-> **Alternative ohne GitHub:** <https://neocities.org> oder <https://surge.sh> tun es auch. Wichtig ist nur, dass die Adresse mit `https://` beginnt — der Overlay-Browser mag unverschlüsselte Seiten nicht besonders.
+Der Ordner auf dem Desktop ist gleichzeitig das Arbeitsverzeichnis dieses Repositories.
 
 ---
 
@@ -57,7 +46,7 @@ Für jede Sprache **ein eigener Guide**. Steam sortiert Guides nach Sprache und 
 3. Aus `STEAM-GUIDE-DE.txt`:
    - **Titel** und **Beschreibung** aus dem Kopf der Datei übernehmen.
    - Alles ab der Zeile `--- AB HIER ... ---` in das große Textfeld kopieren.
-   - **`DEINE_URL_HIER` durch die echte Adresse aus Schritt 1 ersetzen.**
+   - Der Link steht schon drin, es ist nichts mehr zu ersetzen.
 4. **Sprache:** Deutsch. **Typ:** Gameplay Basics.
 5. Bilder hochladen — Steam verlangt mindestens eines. Liegen fertig im Ordner:
    - `guide-aob-de.png` als **Titelbild** (die grüne Phosphoranzeige zieht in der Guide-Liste am meisten Blick auf sich)
@@ -65,7 +54,7 @@ Für jede Sprache **ein eigener Guide**. Steam sortiert Guides nach Sprache und 
 
    Für den englischen Guide entsprechend `guide-aob-en.png` und `guide-rec-en.png`.
 6. Sichtbarkeit **Öffentlich** → **Speichern und fortfahren**.
-7. Das Ganze noch einmal mit `STEAM-GUIDE-EN.txt`, Sprache Englisch, Platzhalter `YOUR_URL_HERE`.
+7. Das Ganze noch einmal mit `STEAM-GUIDE-EN.txt`, Sprache Englisch.
 
 Am Ende in beiden Guides jeweils einen Kommentar mit dem Link zum anderen setzen — dann finden Leute die passende Fassung.
 
@@ -88,7 +77,16 @@ Das Overlay speichert `localStorage`, deshalb bleibt die Sprachwahl auch dort er
 
 ## Wenn der Rechner später geändert wird
 
-`index.html` bearbeiten, im Browser prüfen, dann auf GitHub die Datei ersetzen (**Add file → Upload files**, gleicher Name, **Commit**). Die Adresse bleibt dieselbe, die Guides müssen nicht angefasst werden.
+`index.html` bearbeiten, im Browser prüfen, dann aus diesem Ordner heraus:
+
+```
+git add -A
+git commit -m "Kurz was geaendert wurde"
+git push
+```
+
+Nach ein bis zwei Minuten ist die Änderung unter derselben Adresse live. Die Guides auf
+Steam müssen dafür nicht angefasst werden.
 
 Neue Texte gehören in beide Sprachblöcke in `index.html` — ganz oben im `<script>`-Teil unter `var I18N = { de: {...}, en: {...} }`. Jeder Schlüssel muss in beiden Blöcken existieren; fehlt einer im englischen, fällt die Seite an dieser Stelle stillschweigend auf Deutsch zurück.
 

@@ -10,7 +10,7 @@ Der TDC will drei Zahlen: [b]Fahrt[/b], [b]Entfernung[/b], [b]Bugwinkel (AoB)[/b
 
 Er läuft als einzelne Webseite. Kein Download, keine Installation, keine Spieldateien werden angefasst — damit ist er auch bei jedem Server und in jeder Runde erlaubtes Terrain, weil er nichts anderes tut als ein Taschenrechner neben der Tastatur.
 
-[b]Link:[/b] DEINE_URL_HIER
+[b]Link:[/b] https://rannau02-code.github.io/wolfpack-fire-control/
 
 [hr][/hr]
 

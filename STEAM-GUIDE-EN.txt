@@ -10,7 +10,7 @@ The TDC wants three numbers: [b]speed[/b], [b]range[/b], [b]angle on the bow (Ao
 
 It is a single web page. No download, no install, nothing touches your game files — which also makes it fair game on any server, because it does exactly what a pocket calculator next to your keyboard does.
 
-[b]Link:[/b] YOUR_URL_HERE
+[b]Link:[/b] https://rannau02-code.github.io/wolfpack-fire-control/
 
 [hr][/hr]
 
