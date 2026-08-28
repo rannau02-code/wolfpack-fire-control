@@ -65,7 +65,7 @@ Am Ende in beiden Guides jeweils einen Kommentar mit dem Link zum anderen setzen
 So benutzen die Leser es später, und so sollte man es einmal selbst testen:
 
 1. Wolfpack starten — **randloses Fenster**, nicht exklusives Vollbild. Im echten Vollbild flackert das Overlay auf manchen Grafikkarten oder verliert den Fokus.
-2. **Shift + Tab** → Overlay öffnet sich.
+2. **Shift + Tab** (Steams Voreinstellung, frei belegbar) → Overlay öffnet sich.
 3. Unten links **Webbrowser** → Adresse eingeben → Enter.
 4. Stern in der Adresszeile → als Lesezeichen speichern.
 

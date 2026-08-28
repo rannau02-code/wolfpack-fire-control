@@ -19,7 +19,7 @@ Genau dafür ist die Seite gebaut: dunkel, große Ziffern, funktioniert mit der 
 
 [olist]
 [*] Wolfpack starten.
-[*] [b]Shift + Tab[/b] — das Steam-Overlay geht auf.
+[*] [b]Shift + Tab[/b] drücken — das ist Steams Voreinstellung, das Overlay geht auf. Wer die Belegung geändert hat, nimmt seine eigene; nachsehen kann man sie unter Steam, Einstellungen, Im Spiel.
 [*] Unten links auf [b]Webbrowser[/b] klicken.
 [*] Die Adresse oben eingeben (einmalig) und Enter drücken.
 [*] Auf den Stern rechts in der Adresszeile klicken → als [b]Lesezeichen[/b] speichern. Ab jetzt ist es zwei Klicks entfernt.

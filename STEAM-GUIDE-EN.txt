@@ -19,7 +19,7 @@ That is what the page was built for: dark, big digits, mouse-friendly.
 
 [olist]
 [*] Launch Wolfpack.
-[*] Press [b]Shift + Tab[/b] to open the Steam Overlay.
+[*] Press [b]Shift + Tab[/b] — Steam's default binding — to open the overlay. If you rebound it, use your own combination; you can look it up under Steam, Settings, In Game.
 [*] Click [b]Web Browser[/b] in the bottom left.
 [*] Type the address in once and hit Enter.
 [*] Click the star at the right of the address bar to [b]bookmark[/b] it. From then on it is two clicks away.
