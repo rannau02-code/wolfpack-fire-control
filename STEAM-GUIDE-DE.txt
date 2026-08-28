@@ -1,0 +1,148 @@
+TITEL: Feuerleitrechner für Wolfpack — Fahrt, Entfernung, Bugwinkel im Steam-Overlay
+BESCHREIBUNG (kurz): Ein Rechner für die drei Zahlen, die der TDC braucht. Läuft im Steam-Overlay neben dem Spiel, offline, ohne Installation. Deutsch und Englisch.
+SPRACHE: Deutsch
+TAGS: Gameplay Basics, Walkthroughs, Multiplayer
+
+--- AB HIER IN DAS STEAM-GUIDE-FELD KOPIEREN ---
+
+[h1]Wozu das hier?[/h1]
+Der TDC will drei Zahlen: [b]Fahrt[/b], [b]Entfernung[/b], [b]Bugwinkel (AoB)[/b]. Alle drei rechnet man im Kopf aus Periskopmessungen — mitten im Anlauf, während der Zerstörer näher kommt. Der Rechner nimmt einem das Kopfrechnen ab, nicht das Messen.
+
+Er läuft als einzelne Webseite. Kein Download, keine Installation, keine Spieldateien werden angefasst — damit ist er auch bei jedem Server und in jeder Runde erlaubtes Terrain, weil er nichts anderes tut als ein Taschenrechner neben der Tastatur.
+
+[b]Link:[/b] DEINE_URL_HIER
+
+[hr][/hr]
+
+[h1]Im Steam-Overlay benutzen[/h1]
+Genau dafür ist die Seite gebaut: dunkel, große Ziffern, funktioniert mit der Maus.
+
+[olist]
+[*] Wolfpack starten.
+[*] [b]Shift + Tab[/b] — das Steam-Overlay geht auf.
+[*] Unten links auf [b]Webbrowser[/b] klicken.
+[*] Die Adresse oben eingeben (einmalig) und Enter drücken.
+[*] Auf den Stern rechts in der Adresszeile klicken → als [b]Lesezeichen[/b] speichern. Ab jetzt ist es zwei Klicks entfernt.
+[/olist]
+
+[b]Wichtig:[/b] Wolfpack im [b]randlosen Fenstermodus[/b] laufen lassen. Im echten Vollbild flackert das Overlay bei manchen Grafikkarten oder klaut den Fokus. Wer zwei Monitore hat, macht die Seite besser gleich im normalen Browser auf dem zweiten Schirm auf — dann muss man gar nichts wegklicken.
+
+Die Sprache wird gespeichert. Einmal auf [b]EN[/b] oder [b]DE[/b] oben rechts klicken, und die Seite kommt beim nächsten Mal so wieder.
+
+[hr][/hr]
+
+[h1]Station 01 — Schiffserkennung[/h1]
+Reihenfolge im Erkennungsbuch: erst die [b]Masten[/b], dann der Aufbau. Die Motor- und Inselfilter kann man meist überspringen — die Mastfolge allein siebt schon fast alles aus.
+
+Der Mast-Code wird [b]von Bug nach Heck[/b] gelesen:
+[list]
+[*] [b]M[/b] — Mast. Alles Senkrechte, was nicht K oder F ist.
+[*] [b]K[/b] — Kingpost. Von vorn oder achtern ein „H", von der Seite ein „L".
+[*] [b]F[/b] — Schornstein. Raucht, ist dunkel.
+[/list]
+
+Im Rechner tippt man die Merkmale in der Reihenfolge an, in der man sie sieht. Unten steht dann die Zeichenfolge, die ins Spiel gehört. [b]Jedes[/b] Merkmal zählen, keins auslassen — ein vergessener Mast wirft einen in die falsche Klasse.
+
+Und: in der Trefferliste [b]nach oben scrollen[/b]. Der erste Treffer ist oft schon vom Bildrand abgeschnitten.
+
+Wenn die Klasse steht, [b]Länge[/b] und [b]größte Höhe[/b] aus dem Buch unten in Station 01 eintragen und auf „Alles übernehmen" klicken. Die Werte landen dann automatisch in den Stationen 02, 03 und 04.
+
+[hr][/hr]
+
+[h1]Station 02 — Fahrt messen[/h1]
+Das saubere Verfahren mit stehendem Boot:
+
+[olist]
+[*] U-Boot stoppen. Periskop auf das Ziel, senkrechte Mittellinie als Ziellinie.
+[*] Wenn der [b]Bug[/b] die Linie berührt: Stoppuhr starten.
+[*] Wenn das [b]Heck[/b] die Linie verlässt: stoppen.
+[/olist]
+
+[code]Fahrt (kn) = Schiffslänge (m) ÷ Zeit (s) × 1,94[/code]
+
+Die Stoppuhr ist im Rechner eingebaut und schreibt die Zeit selbst ins Feld.
+
+[b]Wenn das Boot fährt:[/b] auf „In Fahrt · Überholen" umschalten. Der gemessene Wert ist dann die [b]Relativfahrt[/b], und der Rechner verrechnet sie je nach Geometrie mit der eigenen Fahrt. Aufpassen, welchen der drei Fälle man hat — überholen, überholt werden, Gegenkurs. Das Vorzeichen entscheidet über zwei bis vier Knoten Fehler, und vier Knoten Fehler sind ein Fehlschuss.
+
+[b]Lateralmethode[/b] (aufklappbar): wenn das Ziel nicht quer läuft. Bei 6×-Zoom messen, wie viele Zentiradiant ein Mast in einer festen Zeit horizontal wandert.
+[code]Fahrt (kn) = 0,486 × Entfernung (hm) × crad ÷ Zeit (s)[/code]
+Das Ergebnis ist die Quergeschwindigkeit. Im TDC dann [b]AoB 90°[/b] eingeben, Seite nach Laufrichtung.
+
+[hr][/hr]
+
+[h1]Station 03 — Entfernung messen[/h1]
+Waagerechte Mittellinie auf die [b]Wasserlinie[/b], senkrechte Linie an den [b]Mast[/b]. Dann die Zentiradiant von der Wasserlinie bis zur Mastspitze abzählen.
+
+[code]Entfernung (m) = Masthöhe (m) × 100 ÷ Zentiradiant[/code]
+
+Bei [b]6×-Zoom[/b] steht das Ziel viermal so groß im Bild — der Rechner multipliziert dann automatisch mit 4, sobald man oben auf „6× · Zoom" umschaltet. Das ist die Stelle, an der die meisten Entfernungen kaputtgehen: Zoom vergessen heißt Faktor vier daneben.
+
+Die [b]Gegenprobe[/b] darunter geht andersherum. Man gibt die Entfernung ein, die man erwartet, und bekommt die Zentiradiant, die man sehen müsste. Passt das nicht zum Bild im Periskop, stimmt die Schiffsklasse nicht.
+
+[hr][/hr]
+
+[h1]Station 04 — Bugwinkel (AoB)[/h1]
+Der Bugwinkel ist der Winkel, unter dem [i]das Ziel[/i] einen sieht — 0° heißt, es kommt mit dem Bug direkt auf einen zu, 180° heißt, es läuft mit dem Heck weg.
+
+Peilung vom Periskopband ablesen, Zielkurs aus der Kartenplottung. Beides magnetisch, gleiche Bezugsrichtung.
+
+[code]AoB = Peilung + 180 − Zielkurs[/code]
+
+Die Anzeige sagt gleich mit dazu, welche Seite man sieht: [b]grün[/b] für Steuerbord, [b]rot[/b] für Backbord. Genau so gehört es in den TDC. Die Scheibe daneben zeigt das Ganze als Silhouette und lässt sich mit der Maus drehen — wer den Winkel lieber schätzt als rechnet, zieht einfach an der Nadel.
+
+[b]Präzise AoB per Periskop[/b] (aufklappbar): scheinbare Länge (waagerecht) und Masthöhe (senkrecht) des Ziels messen, beide [b]bei gleicher Vergrößerung[/b].
+[code]sin(AoB) = (Länge ÷ Höhe) × (wahre Masthöhe ÷ wahre Länge)[/code]
+Entfernung und Zoom kürzen sich heraus. Das ist deutlich genauer als Schätzen und die beste Methode, wenn man keine saubere Kartenplottung hat. Beobachtungsperiskop für ruhiges, helles Bild; Angriffsperiskop für Tarnung und das Peilband.
+
+[hr][/hr]
+
+[h1]Station 05 — Gegnerkurs[/h1]
+Der Rückwärtsgang von Station 04. Man hat die Peilung und schätzt den Bugwinkel an der Silhouette — heraus kommt der Kurs, den der Gegner läuft.
+
+[code]Kurs = Peilung + 180 − AoB   (STB minus, BB plus)[/code]
+
+Das braucht man für die Vorausberechnung: wohin läuft der Konvoi, wo muss ich sein, lohnt das Anlaufen überhaupt noch.
+
+[hr][/hr]
+
+[h1]Ein vollständiger Anlauf[/h1]
+[olist]
+[*] [b]01[/b] — Klasse bestimmen, Länge und Masthöhe übernehmen.
+[*] [b]02[/b] — Boot stoppen, Fahrt über die Stoppuhr messen.
+[*] [b]03[/b] — Entfernung über die Masthöhe messen. Zoomstufe prüfen.
+[*] [b]05[/b] — Gegnerkurs bestimmen, Anlaufpunkt abschätzen.
+[*] [b]04[/b] — Bugwinkel kurz vor dem Schuss noch einmal frisch nehmen.
+[*] Alles in den TDC, Rohr auf, Schuss.
+[/olist]
+
+Der Bugwinkel ist der Wert, der am schnellsten veraltet. Fahrt und Entfernung darf man ein paar Minuten alt haben, den AoB nicht.
+
+[hr][/hr]
+
+[h1]Zoom, Zahlen, Fallstricke[/h1]
+[list]
+[*] Standardzoom ist [b]1,5×[/b], Zielzoom [b]6×[/b] — das ist Faktor [b]4[/b], nicht 6. Der Rechner rechnet mit 4.
+[*] Beide Periskope haben dieselbe Skala. Nur nicht mittendrin umschalten.
+[*] Das Erkennungsbuch ist nicht immer exakt. Wenn das Ergebnis absurd aussieht, ist meistens die Schiffsklasse falsch, nicht die Formel.
+[*] Bei der Fahrtmessung zählt die Zeit von [b]Bug[/b] bis [b]Heck[/b] — nicht bis zur Mitte.
+[*] Die Seite merkt sich nichts außer der Sprache. Kein Konto, kein Tracking, keine Verbindung nach draußen.
+[/list]
+
+[hr][/hr]
+
+[h1]Fragen, die kommen werden[/h1]
+[b]Ist das ein Cheat?[/b]
+Nein. Er sieht nichts vom Spiel, liest nichts aus, greift auf nichts zu. Er rechnet Zahlen aus, die man selbst gemessen und selbst eingetippt hat — genau wie der Zettel und der Taschenrechner, mit denen die Besatzungen das damals gemacht haben.
+
+[b]Läuft das auch auf dem Handy?[/b]
+Ja. Die Seite passt sich an, und die Scheiben lassen sich mit dem Finger drehen. Für Leute, die das Overlay nicht mögen, ist das oft der bequemere Weg.
+
+[b]Funktioniert es offline?[/b]
+Ja. Einmal geladen, läuft es ohne Netz weiter. Wer es dauerhaft will, speichert die Seite über Strg+S ab und öffnet die Datei direkt.
+
+[b]Wo melde ich Fehler?[/b]
+In die Kommentare unter diesem Guide.
+
+[hr][/hr]
+
+[i]Der Rechner ist zweisprachig — oben rechts auf EN umschalten für die englische Fassung.[/i]

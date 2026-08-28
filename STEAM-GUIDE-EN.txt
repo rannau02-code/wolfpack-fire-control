@@ -1,0 +1,148 @@
+TITLE: Fire Control Calculator for Wolfpack — speed, range and AoB in the Steam Overlay
+SHORT DESCRIPTION: A calculator for the three numbers the TDC needs. Runs in the Steam Overlay next to the game, offline, no install. English and German.
+LANGUAGE: English
+TAGS: Gameplay Basics, Walkthroughs, Multiplayer
+
+--- COPY EVERYTHING BELOW INTO THE STEAM GUIDE FIELD ---
+
+[h1]What this is for[/h1]
+The TDC wants three numbers: [b]speed[/b], [b]range[/b], [b]angle on the bow (AoB)[/b]. All three come out of periscope measurements you do in your head, mid-approach, while a destroyer is closing. This takes the arithmetic off your hands. It does not take the measuring off your hands.
+
+It is a single web page. No download, no install, nothing touches your game files — which also makes it fair game on any server, because it does exactly what a pocket calculator next to your keyboard does.
+
+[b]Link:[/b] YOUR_URL_HERE
+
+[hr][/hr]
+
+[h1]Using it in the Steam Overlay[/h1]
+That is what the page was built for: dark, big digits, mouse-friendly.
+
+[olist]
+[*] Launch Wolfpack.
+[*] Press [b]Shift + Tab[/b] to open the Steam Overlay.
+[*] Click [b]Web Browser[/b] in the bottom left.
+[*] Type the address in once and hit Enter.
+[*] Click the star at the right of the address bar to [b]bookmark[/b] it. From then on it is two clicks away.
+[/olist]
+
+[b]Important:[/b] run Wolfpack in [b]borderless windowed[/b] mode. In exclusive fullscreen the overlay flickers on some cards or steals focus. If you have two monitors, just open the page in a normal browser on the second screen — then there is nothing to dismiss at all.
+
+Your language choice is remembered. Click [b]EN[/b] or [b]DE[/b] in the top right once and it comes back that way next time.
+
+[hr][/hr]
+
+[h1]Station 01 — Ship recognition[/h1]
+Order in the recognition manual: [b]masts[/b] first, superstructure second. You can usually skip the engine and island filters — the mast sequence alone narrows it down to almost nothing.
+
+The mast code is read [b]bow to stern[/b]:
+[list]
+[*] [b]M[/b] — mast. Anything vertical that is not a K or an F.
+[*] [b]K[/b] — kingpost. An “H” from ahead or astern, an “L” from the side.
+[*] [b]F[/b] — funnel. Smokes, dark.
+[/list]
+
+In the calculator you tap the features in the order you see them, and it gives you the string to type into the game. Count [b]every[/b] feature, skip none — one missed mast puts you in the wrong class entirely.
+
+Also: [b]scroll up[/b] in the results list. The first match is often cut off above the visible area.
+
+Once you have the class, enter [b]length[/b] and [b]greatest height[/b] from the manual at the bottom of Station 01 and hit "Carry everything over". The values land in stations 02, 03 and 04 automatically.
+
+[hr][/hr]
+
+[h1]Station 02 — Measuring speed[/h1]
+The clean method, with the boat stopped:
+
+[olist]
+[*] Stop the boat. Periscope on the target, vertical crosshair as your mark.
+[*] The moment the [b]bow[/b] touches the line: start the watch.
+[*] The moment the [b]stern[/b] clears it: stop.
+[/olist]
+
+[code]speed (kn) = ship length (m) ÷ time (s) × 1.94[/code]
+
+The stopwatch is built into the calculator and writes the time into the field itself.
+
+[b]If you are under way:[/b] switch to "Under way · overtaking". What you measured is then [b]relative[/b] speed, and the calculator combines it with your own speed according to the geometry. Watch which of the three cases you are in — overtaking, being overtaken, or head-on. The sign is worth two to four knots, and four knots of error is a miss.
+
+[b]Lateral method[/b] (expandable): for when the target is not running abeam. At 6× zoom, measure how many centiradians a mast sweeps horizontally in a fixed time.
+[code]speed (kn) = 0.486 × range (hm) × crad ÷ time (s)[/code]
+The result is lateral speed. Enter [b]AoB 90°[/b] in the TDC, side according to the direction of travel.
+
+[hr][/hr]
+
+[h1]Station 03 — Measuring range[/h1]
+Horizontal crosshair on the [b]waterline[/b], vertical line on the [b]mast[/b]. Count the centiradians from waterline to masthead.
+
+[code]range (m) = mast height (m) × 100 ÷ centiradians[/code]
+
+At [b]6× zoom[/b] the target is four times larger in the view — the calculator multiplies by 4 as soon as you flip the toggle to "6× · zoom". This is where most range estimates die: forget the zoom and you are off by a factor of four.
+
+The [b]cross-check[/b] below runs it backwards. Feed it the range you expect and it tells you how many centiradians you should be seeing. If that does not match the periscope, your ship class is wrong.
+
+[hr][/hr]
+
+[h1]Station 04 — Angle on the bow (AoB)[/h1]
+The angle on the bow is the angle from which [i]the target[/i] sees you — 0° means it is coming bow-on straight at you, 180° means it is running away stern-on.
+
+Read the bearing off the periscope ring, take the target course from your chart plot. Both magnetic, same reference.
+
+[code]AoB = bearing + 180 − target course[/code]
+
+The readout tells you which side you are looking at: [b]green[/b] for starboard, [b]red[/b] for port. That is exactly how it goes into the TDC. The dial next to it shows the same thing as a silhouette and turns with the mouse — if you would rather eyeball the angle than compute it, just drag the needle.
+
+[b]Precise AoB by periscope[/b] (expandable): measure the target's apparent length (horizontal) and mast height (vertical), both [b]at the same magnification[/b].
+[code]sin(AoB) = (length ÷ height) × (true mast height ÷ true length)[/code]
+Range and zoom cancel out. This is considerably better than eyeballing and it is the method of choice when you have no clean chart plot. Use the observation scope for a steady, bright image; the attack scope for stealth and the bearing ring.
+
+[hr][/hr]
+
+[h1]Station 05 — Target course[/h1]
+Station 04 in reverse. You have the bearing and you estimate the angle on the bow off the silhouette — out comes the course the target is steering.
+
+[code]course = bearing + 180 − AoB   (minus for starboard, plus for port)[/code]
+
+This is what you need for the intercept: where is the convoy going, where do I have to be, is the approach still worth running.
+
+[hr][/hr]
+
+[h1]A full approach[/h1]
+[olist]
+[*] [b]01[/b] — identify the class, carry length and mast height over.
+[*] [b]02[/b] — stop the boat, time the target for speed.
+[*] [b]03[/b] — range off the mast height. Check the zoom setting.
+[*] [b]05[/b] — work out the target course, judge the intercept.
+[*] [b]04[/b] — take a fresh angle on the bow right before firing.
+[*] All of it into the TDC, tube open, fire.
+[/olist]
+
+AoB is the number that goes stale fastest. Speed and range can be a few minutes old. The angle on the bow cannot.
+
+[hr][/hr]
+
+[h1]Zoom, numbers, traps[/h1]
+[list]
+[*] Default zoom is [b]1.5×[/b], target zoom is [b]6×[/b] — that is a factor of [b]4[/b], not 6. The calculator uses 4.
+[*] Both periscopes share the same scale. Just do not switch scopes mid-measurement.
+[*] The recognition manual is not always exact. If a result looks absurd, the ship class is usually wrong, not the formula.
+[*] When timing for speed, measure [b]bow[/b] to [b]stern[/b] — not to the middle.
+[*] The page stores nothing but your language choice. No account, no tracking, no connection going out.
+[/list]
+
+[hr][/hr]
+
+[h1]Questions that will come up[/h1]
+[b]Is this cheating?[/b]
+No. It sees nothing of the game, reads nothing, hooks nothing. It computes numbers you measured yourself and typed in yourself — the same job the paper and slide rule did for the crews who actually had to do this.
+
+[b]Does it work on a phone?[/b]
+Yes. The layout adapts and the dials turn under your finger. For people who dislike the overlay, that is often the more comfortable route.
+
+[b]Does it work offline?[/b]
+Yes. Once loaded it keeps working without a connection. If you want it permanently, save the page with Ctrl+S and open the file directly.
+
+[b]Where do I report problems?[/b]
+In the comments under this guide.
+
+[hr][/hr]
+
+[i]The calculator is bilingual — switch to DE in the top right for the German version.[/i]

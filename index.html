@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wolfpack · Feuerleitrechner / Fire Control Calculator</title>
+<style>
+  :root{
+    --bg:        #0d1114;
+    --bg-2:      #12181d;
+    --steel:     #1a2127;
+    --steel-hi:  #232c34;
+    --line:      #2b353d;
+    --brass:     #c9a227;
+    --brass-dim: #7d6a2a;
+    --night:     #d1402f;   /* Nachtrot / Backbord */
+    --night-dim: #6f231b;
+    --phos:      #63f0a0;   /* Phosphor / Steuerbord */
+    --phos-dim:  #1d4f37;
+    --text:      #c3ced7;
+    --muted:     #7f8c97;
+    --faint:     #55616b;
+    --display:   "Arial Narrow","Roboto Condensed","Helvetica Neue",sans-serif;
+    --mono:      ui-monospace,"SFMono-Regular","Cascadia Code",Consolas,"Liberation Mono",monospace;
+    --body:      system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 700px at 50% -10%, #18232b 0%, var(--bg) 60%) fixed,
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:24px 16px 56px;
+  }
+  .wrap{max-width:760px;margin:0 auto}
+
+  /* ---------- Header ---------- */
+  header{
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:linear-gradient(180deg,var(--steel-hi),var(--steel));
+    padding:18px 84px 18px 20px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{ /* rivets */
+    content:"";position:absolute;inset:6px;border-radius:7px;
+    box-shadow:inset 0 0 0 1px #ffffff08;
+    pointer-events:none;
+  }
+  .kicker{
+    font-family:var(--display);
+    text-transform:uppercase;
+    letter-spacing:.32em;
+    font-size:12px;
+    color:var(--brass);
+    margin:0 0 4px;
+  }
+  h1{
+    font-family:var(--display);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-weight:700;
+    font-size:clamp(26px,6vw,40px);
+    margin:0;
+    color:#eef4f8;
+  }
+  h1 .accent{color:var(--night)}
+  .subtitle{margin:6px 0 0;color:var(--muted);font-size:14px}
+
+  /* ---------- Sprachwahl / Language switch ---------- */
+  .lang{position:absolute;top:14px;right:14px;display:flex;gap:4px;z-index:3}
+  .lang button{
+    cursor:pointer;background:var(--bg);
+    border:1px solid var(--line);border-radius:5px;
+    color:var(--muted);font-family:var(--mono);font-size:12px;font-weight:700;
+    letter-spacing:.06em;padding:5px 9px;transition:.15s;
+  }
+  .lang button[aria-pressed="true"]{
+    color:#eef4f8;border-color:var(--brass);
+    background:linear-gradient(180deg,#2a2312,#1c1a10);
+    box-shadow:inset 0 0 10px -5px var(--brass);
+  }
+  .lang button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+  /* ---------- Stationswahl (Tabs) ---------- */
+  .stations{
+    display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0;
+    border:1px solid var(--line);border-radius:10px;
+    background:var(--bg-2);padding:6px;
+  }
+  .station-btn{
+    flex:1 1 0;min-width:0;
+    appearance:none;cursor:pointer;
+    background:transparent;color:var(--muted);
+    border:1px solid transparent;border-radius:7px;
+    padding:10px 6px 8px;
+    font-family:var(--display);text-transform:uppercase;
+    letter-spacing:.1em;font-size:13px;font-weight:700;
+    transition:color .15s,background .15s,box-shadow .15s;
+  }
+  .station-btn .no{display:block;font-size:10px;letter-spacing:.2em;color:var(--faint);margin-bottom:2px}
+  .station-btn:hover{color:var(--text)}
+  .station-btn[aria-selected="true"]{
+    color:#eef4f8;
+    background:linear-gradient(180deg,var(--steel-hi),var(--steel));
+    border-color:var(--line);
+    box-shadow:inset 0 -2px 0 0 var(--night), 0 0 14px -6px var(--night);
+  }
+  .station-btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+  /* ---------- Panel ---------- */
+  .panel{
+    display:none;
+    margin-top:16px;
+    border:1px solid var(--line);border-radius:10px;
+    background:linear-gradient(180deg,var(--steel),var(--bg-2));
+    padding:20px;
+  }
+  .panel.active{display:block}
+  .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 14px}
+  .panel-head h2{
+    font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;
+    font-size:20px;margin:0;color:#eef4f8;
+  }
+  .panel-head .hint{color:var(--muted);font-size:12.5px;max-width:52%;text-align:right}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:600px){.grid{grid-template-columns:1fr}}
+
+  /* ---------- Eingaben ---------- */
+  .field{margin-bottom:14px}
+  label{
+    display:block;font-family:var(--display);text-transform:uppercase;
+    letter-spacing:.14em;font-size:12px;color:var(--brass);margin-bottom:5px;
+  }
+  label .sub{color:var(--faint);text-transform:none;letter-spacing:.02em;font-family:var(--body);font-size:11.5px}
+  .inp{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--line);border-radius:6px;
+    color:var(--text);
+    font-family:var(--mono);font-size:18px;
+    padding:10px 12px;
+  }
+  .inp:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 1px var(--brass-dim)}
+  .inp::placeholder{color:var(--faint)}
+
+  .toggle{display:flex;gap:6px}
+  .toggle.vert{flex-direction:column}
+  .toggle.vert button{text-align:left}
+  .toggle button{
+    flex:1;cursor:pointer;
+    background:var(--bg);border:1px solid var(--line);border-radius:6px;
+    color:var(--muted);font-family:var(--mono);font-size:13px;padding:9px 6px;
+    transition:.15s;
+  }
+  .toggle button[aria-pressed="true"]{
+    color:#eef4f8;border-color:var(--brass);
+    background:linear-gradient(180deg,#2a2312,#1c1a10);
+    box-shadow:inset 0 0 12px -6px var(--brass);
+  }
+  .toggle button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+  .btn-row{display:flex;gap:8px;margin-top:2px}
+  .btn{
+    cursor:pointer;flex:1;
+    font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;font-weight:700;font-size:13px;
+    padding:11px 8px;border-radius:6px;border:1px solid var(--line);
+    background:var(--steel-hi);color:var(--text);transition:.15s;
+  }
+  .btn:hover{border-color:var(--faint)}
+  .btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+  .btn.go{border-color:var(--phos-dim);color:#cffbe2;box-shadow:inset 0 0 14px -8px var(--phos)}
+  .btn.stop{border-color:var(--night-dim);color:#ffd8d2;box-shadow:inset 0 0 14px -8px var(--night)}
+  .btn.ghost{background:transparent;color:var(--muted)}
+
+  /* ---------- Anzeige / Phosphor ---------- */
+  .readout{
+    background:#060a08;
+    border:1px solid #12251a;border-radius:8px;
+    padding:16px 16px 14px;
+    position:relative;overflow:hidden;
+    box-shadow:inset 0 0 40px -14px var(--phos), inset 0 0 0 1px #ffffff05;
+  }
+  .readout::after{ /* scanlines */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,#00000000 0 2px,#00000022 2px 3px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  .ro-label{font-family:var(--display);text-transform:uppercase;letter-spacing:.2em;font-size:11px;color:var(--phos-dim);filter:brightness(1.6)}
+  .ro-value{
+    font-family:var(--mono);font-weight:700;
+    font-size:clamp(38px,10vw,58px);line-height:1.05;
+    color:var(--phos);
+    text-shadow:0 0 12px var(--phos),0 0 30px var(--phos-dim);
+    margin:2px 0;
+  }
+  .ro-value.small{font-size:clamp(26px,7vw,38px)}
+  .ro-unit{font-size:.42em;color:#8be9b6;text-shadow:none;letter-spacing:.04em;margin-left:6px}
+  .ro-sub{font-family:var(--mono);font-size:13px;color:#5aa583;min-height:18px}
+  .ro-note{font-size:12.5px;color:var(--muted);margin-top:10px;min-height:16px}
+
+  /* Backbord-Variante der Anzeige (AoB) */
+  .readout.port{box-shadow:inset 0 0 40px -14px var(--night), inset 0 0 0 1px #ffffff05}
+  .readout.port::after{opacity:.4}
+  .ro-value.port{color:var(--night);text-shadow:0 0 12px var(--night),0 0 30px var(--night-dim)}
+  .ro-label.port{color:var(--night-dim);filter:brightness(1.7)}
+  .ro-sub.port{color:#c98a80}
+
+  /* Stoppuhr */
+  .stopwatch{
+    display:flex;align-items:center;gap:12px;
+    background:var(--bg);border:1px solid var(--line);border-radius:6px;
+    padding:8px 12px;margin:2px 0 12px;
+  }
+  .sw-time{font-family:var(--mono);font-size:22px;color:var(--text);min-width:96px;letter-spacing:.02em}
+  .sw-time.run{color:var(--phos);text-shadow:0 0 8px var(--phos-dim)}
+  .sw-hint{font-size:11.5px;color:var(--faint);margin:0 0 4px}
+
+  /* ---------- AoB Scheibe ---------- */
+  .dial-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+  svg.dial{width:100%;max-width:260px;height:auto;touch-action:none;cursor:grab;border-radius:50%}
+  svg.dial.grabbing{cursor:grabbing}
+  svg.dial:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+  .dial-tip{margin:0;color:var(--faint);font-family:var(--display);text-transform:uppercase;letter-spacing:.14em;font-size:11px}
+  .tick{stroke:var(--faint);stroke-width:1}
+  .tick.major{stroke:var(--brass-dim);stroke-width:1.5}
+  .ring{fill:none;stroke:var(--line);stroke-width:2}
+  .hull-stb{fill:#0f2c1f;stroke:var(--phos-dim);stroke-width:1.5}
+  .hull-port{fill:#2c1512;stroke:var(--night-dim);stroke-width:1.5}
+  .hull-lit-stb{fill:#14442e;stroke:var(--phos);stroke-width:1.8}
+  .hull-lit-port{fill:#48201b;stroke:var(--night);stroke-width:1.8}
+  .needle{stroke:#e9eef2;stroke-width:2.4;stroke-linecap:round}
+  .sub-dot{fill:#eef4f8;stroke:#0d1114;stroke-width:1.5}
+  .dial-lbl{fill:var(--faint);font-family:var(--display);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+
+  /* ---------- Erweitert (collapsible) ---------- */
+  details{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+  summary{cursor:pointer;color:var(--brass);font-family:var(--display);text-transform:uppercase;letter-spacing:.14em;font-size:12px;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--brass-dim)}
+  details[open] summary::before{content:"▾ "}
+
+  /* ---------- Formel-Chip ---------- */
+  .formula{
+    font-family:var(--mono);font-size:12.5px;color:var(--muted);
+    background:var(--bg);border:1px solid var(--line);border-radius:6px;
+    padding:8px 10px;margin-top:12px;
+  }
+  .formula b{color:var(--brass)}
+
+  .mkf-row{display:flex;gap:8px;margin-bottom:12px}
+  .mkf-btn{flex:1;cursor:pointer;border:1px solid var(--line);border-radius:8px;background:var(--steel-hi);color:var(--text);padding:14px 6px;text-align:center;transition:.15s}
+  .mkf-btn:hover{border-color:var(--brass);box-shadow:inset 0 0 14px -8px var(--brass)}
+  .mkf-btn:active{transform:translateY(1px)}
+  .mkf-btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+  .mkf-btn .l{display:block;font-family:var(--mono);font-size:26px;font-weight:700;color:var(--phos);text-shadow:0 0 10px var(--phos-dim)}
+  .mkf-btn .n{display:block;font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;font-size:11px;color:var(--muted);margin-top:2px}
+  .ref{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:10px 12px}
+  .ref h4{margin:0 0 4px;font-family:var(--display);text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--brass)}
+  .ref-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:4px 0;border-top:1px solid var(--line)}
+  .ref-row:nth-of-type(2){border-top:none}
+  .ref-row .ab{font-family:var(--mono);color:var(--phos);font-size:12px;white-space:nowrap}
+  .mono-code{font-family:var(--mono);color:var(--phos)}
+
+  footer{margin-top:20px;color:var(--faint);font-size:12px;text-align:center;line-height:1.7}
+  footer .sep{color:var(--line)}
+
+  @media (max-width:470px){
+    .station-btn{flex:1 1 44%;font-size:12px;letter-spacing:.06em}
+    .station-btn .no{font-size:9px}
+    header{padding:44px 16px 16px}
+    .lang{top:10px;right:10px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="lang" id="lang" role="group" data-ta="lang.aria">
+      <button type="button" data-lang="de" aria-pressed="true">DE</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <p class="kicker" data-t="hdr.kicker">U‑Boot · Vorhalt &amp; Schusslösung</p>
+    <h1 data-th="hdr.title">Feuerleit<span class="accent">rechner</span></h1>
+    <p class="subtitle" data-th="hdr.sub">Fünf Stationen für <em>Wolfpack</em>: Erkennung · Fahrt · Entfernung · Bugwinkel · Gegnerkurs. Läuft komplett offline.</p>
+  </header>
+
+  <div class="stations" role="tablist" data-ta="tabs.aria" aria-label="Stationen">
+    <button class="station-btn" role="tab" id="tab-1" aria-controls="p-1" aria-selected="true"><span class="no">01</span><span data-t="tab.1">Erkennung</span></button>
+    <button class="station-btn" role="tab" id="tab-2" aria-controls="p-2" aria-selected="false"><span class="no">02</span><span data-t="tab.2">Fahrt</span></button>
+    <button class="station-btn" role="tab" id="tab-3" aria-controls="p-3" aria-selected="false"><span class="no">03</span><span data-t="tab.3">Entfernung</span></button>
+    <button class="station-btn" role="tab" id="tab-4" aria-controls="p-4" aria-selected="false"><span class="no">04</span><span data-t="tab.4">Bugwinkel</span></button>
+    <button class="station-btn" role="tab" id="tab-5" aria-controls="p-5" aria-selected="false"><span class="no">05</span><span data-t="tab.5">Gegnerkurs</span></button>
+  </div>
+
+  <!-- ============ STATION 2: FAHRT ============ -->
+  <section class="panel" id="p-2" role="tabpanel" aria-labelledby="tab-2">
+    <div class="panel-head">
+      <h2 data-t="s2.h">Fahrt messen</h2>
+      <p class="hint" data-t="s2.hint">U‑Boot steht. Ziel läuft mit Bug an der senkrechten Mittellinie ein — Stoppuhr bei Bug starten, bei Heck stoppen.</p>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="field">
+          <label data-t="s2.situation">Messsituation</label>
+          <div class="toggle" id="s-mode" role="group" data-ta="s2.situation" aria-label="Messsituation">
+            <button type="button" data-mode="stop" aria-pressed="true" data-t="s2.mode.stop">U‑Boot steht</button>
+            <button type="button" data-mode="move" aria-pressed="false" data-t="s2.mode.move">In Fahrt · Überholen</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="s-len" data-th="s2.len">Schiffslänge <span class="sub">(m · aus dem Erkennungsbuch)</span></label>
+          <input class="inp" id="s-len" type="text" inputmode="decimal" data-tp="ph.134" placeholder="z. B. 134" autocomplete="off">
+        </div>
+
+        <p class="sw-hint" data-t="s2.swhint">Stoppuhr — Bug an der Mittellinie: Start · Heck: Stopp</p>
+        <div class="stopwatch">
+          <span class="sw-time" id="sw-disp">00:00,0</span>
+          <div class="btn-row" style="flex:1">
+            <button class="btn go" id="sw-toggle">Start</button>
+            <button class="btn ghost" id="sw-reset" data-t="sw.reset">Null</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="s-time" data-th="s2.time">Zeit <span class="sub">(Sekunden)</span></label>
+          <input class="inp" id="s-time" type="text" inputmode="decimal" data-tp="ph.62" placeholder="z. B. 62" autocomplete="off">
+        </div>
+
+        <div id="s-move" style="display:none">
+          <div class="field">
+            <label for="s-own" data-th="s2.own">Eigene Fahrt <span class="sub">(kn · vom Fahrtmesser)</span></label>
+            <input class="inp" id="s-own" type="text" inputmode="decimal" data-tp="ph.8" placeholder="z. B. 8" autocomplete="off">
+          </div>
+          <div class="field">
+            <label data-t="s2.geo">Geometrie zum Ziel</label>
+            <div class="toggle vert" id="s-geo" role="group" data-ta="s2.geo" aria-label="Geometrie zum Ziel">
+              <button type="button" data-geo="overtake" aria-pressed="true" data-t="s2.geo.overtake">Ich überhole — Ziel wandert achteraus</button>
+              <button type="button" data-geo="ahead" aria-pressed="false" data-t="s2.geo.ahead">Ziel zieht nach vorn</button>
+              <button type="button" data-geo="opposite" aria-pressed="false" data-t="s2.geo.opposite">Gegenkurs — entgegenkommend</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="readout">
+          <div class="ro-label" data-t="s2.out">Fahrt über Grund</div>
+          <div class="ro-value" id="s-out">—<span class="ro-unit">kn</span></div>
+          <div class="ro-sub" id="s-sub">Länge und Zeit eingeben</div>
+          <div class="ro-note" id="s-note"></div>
+        </div>
+        <div class="formula" data-th="s2.formula">Fahrt = <b>Länge ÷ Zeit × 1,94</b></div>
+      </div>
+    </div>
+
+    <details>
+      <summary data-t="s2b.sum">Erweitert · Lateralmethode (Fahrt aus beliebigem AoB)</summary>
+      <p style="color:var(--muted);font-size:13px;margin:10px 0" data-th="s2b.p">
+        Wenn das Ziel nicht quer läuft: bei <b>6×‑Zoom</b> messen, wie viele Zentiradiant ein Mast in einer bestimmten Zeit
+        horizontal überstreicht. Ergebnis ist die Quergeschwindigkeit — im TDC dann <b>AoB 90°</b> (BB/STB je Laufrichtung) eingeben.
+      </p>
+      <div class="grid">
+        <div>
+          <div class="field">
+            <label for="l-range" data-th="s2b.range">Entfernung <span class="sub">(hm = 100 m)</span></label>
+            <input class="inp" id="l-range" type="text" inputmode="decimal" data-tp="ph.12" placeholder="z. B. 12" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="l-crad" data-th="s2b.crad">Überstrichene Zentiradiant <span class="sub">(bei 6×)</span></label>
+            <input class="inp" id="l-crad" type="text" inputmode="decimal" data-tp="ph.8" placeholder="z. B. 8" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="l-time" data-th="s2b.time">Zeit <span class="sub">(Sekunden)</span></label>
+            <input class="inp" id="l-time" type="text" inputmode="decimal" data-tp="ph.30" placeholder="z. B. 30" autocomplete="off">
+          </div>
+        </div>
+        <div>
+          <div class="readout">
+            <div class="ro-label" data-t="s2b.out">Quergeschwindigkeit</div>
+            <div class="ro-value small" id="l-out">—<span class="ro-unit">kn</span></div>
+            <div class="ro-sub" id="l-sub">Werte eingeben</div>
+          </div>
+          <div class="formula" data-th="s2b.formula">Fahrt = <b>0,486 × Entf.(hm) × crad ÷ Zeit</b></div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ STATION 3: ENTFERNUNG ============ -->
+  <section class="panel" id="p-3" role="tabpanel" aria-labelledby="tab-3">
+    <div class="panel-head">
+      <h2 data-t="s3.h">Entfernung messen</h2>
+      <p class="hint" data-t="s3.hint">Waagerechte Mittellinie auf die Wasserlinie, senkrechte Linie am Mast — Zentiradiant von der Wasserlinie bis zur Mastspitze zählen.</p>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="field">
+          <label for="e-mast" data-th="s3.mast">Masthöhe <span class="sub">(m · aus dem Erkennungsbuch)</span></label>
+          <input class="inp" id="e-mast" type="text" inputmode="decimal" data-tp="ph.28" placeholder="z. B. 28" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="e-crad" data-th="s3.crad">Höhe im Periskop <span class="sub">(Zentiradiant)</span></label>
+          <input class="inp" id="e-crad" type="text" inputmode="decimal" data-tp="ph.7" placeholder="z. B. 7" autocomplete="off">
+        </div>
+        <div class="field">
+          <label data-t="s3.zoom">Vergrößerung</label>
+          <div class="toggle" id="e-zoom" role="group" data-ta="s3.zoom" aria-label="Vergrößerung">
+            <button type="button" data-z="1" aria-pressed="true" data-t="s3.zoom.n">1,5× · Normal</button>
+            <button type="button" data-z="4" aria-pressed="false" data-t="s3.zoom.z">6× · Zoom (×4)</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="readout">
+          <div class="ro-label" data-t="s3.out">Entfernung zum Ziel</div>
+          <div class="ro-value" id="e-out">—<span class="ro-unit">m</span></div>
+          <div class="ro-sub" id="e-sub">Masthöhe und Zentiradiant eingeben</div>
+          <div class="ro-note" id="e-note"></div>
+        </div>
+        <div class="formula" data-th="s3.formula">Entfernung = <b>Masthöhe × 100 ÷ Zentiradiant</b> <span style="color:var(--faint)">· bei 6× ×4</span></div>
+      </div>
+    </div>
+
+    <details>
+      <summary data-t="s3b.sum">Gegenprobe · erwartete Zentiradiant aus bekannter Entfernung</summary>
+      <div class="grid" style="margin-top:10px">
+        <div>
+          <div class="field">
+            <label for="g-mast" data-th="s3b.mast">Masthöhe <span class="sub">(m)</span></label>
+            <input class="inp" id="g-mast" type="text" inputmode="decimal" data-tp="ph.28" placeholder="z. B. 28" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="g-range" data-th="s3b.range">Entfernung <span class="sub">(m)</span></label>
+            <input class="inp" id="g-range" type="text" inputmode="decimal" data-tp="ph.1600" placeholder="z. B. 1600" autocomplete="off">
+          </div>
+        </div>
+        <div>
+          <div class="readout">
+            <div class="ro-label" data-t="s3b.out">Erwartet bei 1,5× / 6×</div>
+            <div class="ro-value small" id="g-out">—<span class="ro-unit">crad</span></div>
+            <div class="ro-sub" id="g-sub">Werte eingeben</div>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ STATION 4: BUGWINKEL ============ -->
+  <section class="panel" id="p-4" role="tabpanel" aria-labelledby="tab-4">
+    <div class="panel-head">
+      <h2 data-t="s4.h">Bugwinkel (AoB)</h2>
+      <p class="hint" data-t="s4.hint">Peilung vom Periskopband ablesen, Zielkurs aus der Kartenplottung. Beides magnetisch, gleiche Bezugsrichtung.</p>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="field">
+          <label for="a-bear" data-th="s4.bear">Peilung zum Ziel <span class="sub">(magn. Grad · 0–359)</span></label>
+          <input class="inp" id="a-bear" type="text" inputmode="decimal" data-tp="ph.30" placeholder="z. B. 30" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="a-course" data-th="s4.course">Zielkurs <span class="sub">(magn. Grad · 0–359)</span></label>
+          <input class="inp" id="a-course" type="text" inputmode="decimal" data-tp="ph.0" placeholder="z. B. 0" autocomplete="off">
+        </div>
+        <div class="readout" id="a-readout">
+          <div class="ro-label" id="a-label">Bugwinkel</div>
+          <div class="ro-value" id="a-out">—<span class="ro-unit">°</span></div>
+          <div class="ro-sub" id="a-sub">Peilung und Kurs eingeben</div>
+        </div>
+        <div class="formula" style="margin-top:12px" data-th="s4.formula">Im TDC: Wert eingeben, Seite <b style="color:var(--night)">BB rot</b> / <b style="color:var(--phos)">STB grün</b> nach Anzeige.</div>
+      </div>
+
+      <div class="dial-wrap">
+        <svg id="dial-3" class="dial" data-ta="dial3.aria" aria-label="Bugwinkel-Scheibe: Nadel ziehen, um den Bugwinkel zu drehen"></svg>
+        <p class="dial-tip" data-t="dial.tip.turn">Nadel ziehen zum Drehen</p>
+      </div>
+    </div>
+
+    <details style="margin-top:16px">
+      <summary data-t="s4b.sum">Präzise AoB per Periskop · Längen-/Höhenverhältnis</summary>
+      <p style="color:var(--muted);font-size:13px;margin:10px 0" data-th="s4b.p">
+        Scheinbare <b>Länge</b> (waagerecht) und <b>Masthöhe</b> (senkrecht) des Ziels im Periskop in Zentiradiant messen —
+        beide bei <b>gleicher Vergrößerung</b>. Entfernung und Zoom kürzen sich heraus, daher genauer als Schätzen.
+        Beobachtungsperiskop für ruhiges, helles Bild; Angriffsperiskop für Tarnung und Peilband.
+      </p>
+      <div class="grid">
+        <div>
+          <div class="field">
+            <label for="pa-len" data-th="s4b.len">Gemessene Länge <span class="sub">(crad · waagerecht)</span></label>
+            <input class="inp" id="pa-len" type="text" inputmode="decimal" data-tp="ph.24" placeholder="z. B. 24" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="pa-hgt" data-th="s4b.hgt">Gemessene Masthöhe <span class="sub">(crad · senkrecht)</span></label>
+            <input class="inp" id="pa-hgt" type="text" inputmode="decimal" data-tp="ph.7" placeholder="z. B. 7" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="pa-tlen" data-th="s4b.tlen">Wahre Schiffslänge <span class="sub">(m · Erkennungsbuch)</span></label>
+            <input class="inp" id="pa-tlen" type="text" inputmode="decimal" data-tp="ph.134" placeholder="z. B. 134" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="pa-tmast" data-th="s4b.tmast">Wahre Masthöhe <span class="sub">(m · Erkennungsbuch)</span></label>
+            <input class="inp" id="pa-tmast" type="text" inputmode="decimal" data-tp="ph.28" placeholder="z. B. 28" autocomplete="off">
+          </div>
+        </div>
+        <div>
+          <div class="field">
+            <label data-t="side.label">Sicht auf</label>
+            <div class="toggle" id="pa-side" role="group" data-ta="side.label" aria-label="Sicht auf">
+              <button type="button" data-side="stb" aria-pressed="true" data-t="side.stb">STB · grün</button>
+              <button type="button" data-side="bb" aria-pressed="false" data-t="side.bb">BB · rot</button>
+            </div>
+          </div>
+          <div class="field">
+            <label data-t="s4b.aspect">Aspekt</label>
+            <div class="toggle vert" id="pa-aspect" role="group" data-ta="s4b.aspect" aria-label="Aspekt">
+              <button type="button" data-asp="bow" aria-pressed="true" data-t="s4b.asp.bow">eher Bug · 0–90°</button>
+              <button type="button" data-asp="stern" aria-pressed="false" data-t="s4b.asp.stern">eher Heck · 90–180°</button>
+            </div>
+          </div>
+          <div class="readout">
+            <div class="ro-label" data-t="s4b.out">Präziser Bugwinkel</div>
+            <div class="ro-value small" id="pa-out">—<span class="ro-unit">°</span></div>
+            <div class="ro-sub" id="pa-sub">Messwerte eingeben</div>
+          </div>
+        </div>
+      </div>
+      <div class="formula" data-th="s4b.formula">sin(AoB) = <b>(Länge ÷ Höhe) × (wahre Masthöhe ÷ wahre Länge)</b></div>
+    </details>
+  </section>
+
+  <!-- ============ STATION 5: GEGNERKURS ============ -->
+  <section class="panel" id="p-5" role="tabpanel" aria-labelledby="tab-5">
+    <div class="panel-head">
+      <h2 data-t="s5.h">Gegnerkurs</h2>
+      <p class="hint" data-t="s5.hint">Peilung ablesen, Bugwinkel am Ziel schätzen (Silhouette drehen) — ergibt den Kurs des Gegners für die Vorausberechnung.</p>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="field">
+          <label for="k-bear" data-th="s5.bear">Peilung zum Ziel <span class="sub">(magn. Grad · 0–359)</span></label>
+          <input class="inp" id="k-bear" type="text" inputmode="decimal" data-tp="ph.30" placeholder="z. B. 30" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="k-aob" data-th="s5.aob">Bugwinkel (AoB) <span class="sub">(0–180° · Silhouette drehbar)</span></label>
+          <input class="inp" id="k-aob" type="text" inputmode="decimal" data-tp="ph.45" placeholder="z. B. 45" autocomplete="off">
+        </div>
+        <div class="field">
+          <label data-t="s5.side">Seite</label>
+          <div class="toggle" id="k-side" role="group" data-ta="s5.side" aria-label="Seite">
+            <button type="button" data-side="stb" aria-pressed="true" data-t="side.stb">STB · grün</button>
+            <button type="button" data-side="bb" aria-pressed="false" data-t="side.bb">BB · rot</button>
+          </div>
+        </div>
+
+        <div class="readout" id="k-readout">
+          <div class="ro-label">Gegnerkurs</div>
+          <div class="ro-value" id="k-out">—<span class="ro-unit">°</span></div>
+          <div class="ro-sub" id="k-sub">Peilung und Bugwinkel eingeben</div>
+        </div>
+        <div class="formula" style="margin-top:12px" data-th="s5.formula">Kurs = <b>Peilung + 180 − AoB</b> <span style="color:var(--faint)">· STB minus, BB plus</span></div>
+      </div>
+
+      <div class="dial-wrap">
+        <svg id="dial-4" class="dial" data-ta="dial4.aria" aria-label="Bugwinkel-Scheibe: Silhouette ziehen, um den Bugwinkel einzustellen"></svg>
+        <p class="dial-tip" data-t="dial.tip.set">Nadel ziehen zum Einstellen</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATION 1: ERKENNUNG ============ -->
+  <section class="panel active" id="p-1" role="tabpanel" aria-labelledby="tab-1">
+    <div class="panel-head">
+      <h2 data-t="s1.h">Schiffserkennung</h2>
+      <p class="hint" data-t="s1.hint">Reihenfolge: erst Masten, dann Aufbau. Motor-/Inselfilter meist überspringen. Ans Hochscrollen in der Liste denken.</p>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label data-t="s1.code">Mast-Code · von Bug nach Heck antippen</label>
+        <div class="mkf-row">
+          <button type="button" class="mkf-btn" data-mkf="M"><span class="l">M</span><span class="n" data-t="s1.m">Mast</span></button>
+          <button type="button" class="mkf-btn" data-mkf="K"><span class="l">K</span><span class="n" data-t="s1.k">Kingpost</span></button>
+          <button type="button" class="mkf-btn" data-mkf="F"><span class="l">F</span><span class="n" data-t="s1.f">Schornstein</span></button>
+        </div>
+        <div class="readout">
+          <div class="ro-label" data-t="s1.out">Mast-Code · Bug → Heck</div>
+          <div class="ro-value small" id="mk-view">—</div>
+          <div class="ro-sub"><span data-t="s1.input">Eingabe ins Spiel:</span> <span class="mono-code" id="mk-input">—</span></div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn" id="mk-undo" data-t="s1.undo">Letzte löschen</button>
+          <button class="btn ghost" id="mk-clear" data-t="s1.clear">Leeren</button>
+          <button class="btn" id="mk-copy" data-t="s1.copy">Kopieren</button>
+        </div>
+        <div class="formula" style="margin-top:12px" data-th="s1.legend">
+          <b>M</b> = Mast (alles Senkrechte außer K/F) · <b>K</b> = Kingpost (von vorn/hinten ein „H", von der Seite ein „L") · <b>F</b> = Schornstein (raucht, dunkel). Jedes Merkmal zählen, keins auslassen.
+        </div>
+      </div>
+
+      <div>
+        <div class="ref" style="margin-bottom:12px">
+          <h4 data-t="s1.merch">Handelsklassen · Ship Type</h4>
+          <div class="ref-row"><span>Passenger Liner</span><span class="ab">PL</span></div>
+          <div class="ref-row"><span>Heavy Tanker</span><span class="ab">HT</span></div>
+          <div class="ref-row"><span>Heavy Freighter</span><span class="ab">HF</span></div>
+          <div class="ref-row"><span>Medium Tanker</span><span class="ab">MT</span></div>
+          <div class="ref-row"><span>Light Merchant</span><span class="ab">LM</span></div>
+          <div class="ref-row"><span>Requisition Trawler</span><span class="ab">RT</span></div>
+        </div>
+        <div class="ref">
+          <h4 data-t="s1.war">Kriegsschiffe · ohne Filter</h4>
+          <div class="ref-row"><span data-t="s1.tribal">Tribal-Zerstörer</span><span class="ab" data-t="s1.tribal.ab">2 Schl · 5 Türme</span></div>
+          <div class="ref-row"><span data-t="s1.bittern">Bittern-Sloop</span><span class="ab" data-t="s1.bittern.ab">1 Schl · 3 Türme</span></div>
+          <div class="ref-row"><span data-t="s1.flower">Flower-Korvette</span><span class="ab" data-t="s1.flower.ab">1 Schl grau · 1 Turm</span></div>
+        </div>
+      </div>
+    </div>
+
+    <details style="margin-top:16px" open>
+      <summary data-t="s1b.sum">Zieldaten übernehmen · in die Rechner-Stationen</summary>
+      <p style="color:var(--muted);font-size:13px;margin:10px 0" data-t="s1b.p">Länge und größte Höhe stehen im Erkennungsbuch. Einmal hier eintragen, dann übernehmen — spart doppeltes Tippen.</p>
+      <div class="grid">
+        <div>
+          <div class="field">
+            <label for="kn-name" data-th="s1b.name">Schiff <span class="sub">(optional, z. B. Heavy Freighter 8)</span></label>
+            <input class="inp" id="kn-name" type="text" data-tp="s1b.name.ph" placeholder="Name / Klasse" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="kn-len" data-th="s1b.len">Länge <span class="sub">(m)</span></label>
+            <input class="inp" id="kn-len" type="text" inputmode="decimal" data-tp="ph.134" placeholder="z. B. 134" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="kn-mast" data-th="s1b.mast">Größte Höhe / Masthöhe <span class="sub">(m)</span></label>
+            <input class="inp" id="kn-mast" type="text" inputmode="decimal" data-tp="ph.28" placeholder="z. B. 28" autocomplete="off">
+          </div>
+        </div>
+        <div>
+          <div class="btn-row" style="flex-direction:column;align-items:stretch;gap:8px">
+            <button class="btn" id="kn-len-btn" data-t="s1b.btn.len">→ Länge in Fahrt &amp; AoB</button>
+            <button class="btn" id="kn-mast-btn" data-t="s1b.btn.mast">→ Masthöhe in Entfernung &amp; AoB</button>
+            <button class="btn go" id="kn-all-btn" data-t="s1b.btn.all">→ Alles übernehmen</button>
+          </div>
+          <p style="color:var(--faint);font-size:12px;margin-top:10px" data-t="s1b.note">Füllt Schiffslänge (02), Masthöhe (03) und die wahren Werte für die präzise AoB (04).</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <footer data-th="footer">
+    Wolfpack · Standardzoom 1,5× &nbsp;<span class="sep">|</span>&nbsp; Zielzoom 6× (×4)
+    <br>Werte immer am Ziel gegenprüfen — Erkennungsbuch ist nicht immer exakt.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ================= i18n ================= */
+  var I18N = {
+  de: {
+    "doc.title":"Wolfpack · Feuerleitrechner",
+    "lang.aria":"Sprache / Language",
+    "hdr.kicker":"U‑Boot · Vorhalt & Schusslösung",
+    "hdr.title":"Feuerleit<span class=\"accent\">rechner</span>",
+    "hdr.sub":"Fünf Stationen für <em>Wolfpack</em>: Erkennung · Fahrt · Entfernung · Bugwinkel · Gegnerkurs. Läuft komplett offline.",
+    "tabs.aria":"Stationen",
+    "tab.1":"Erkennung", "tab.2":"Fahrt", "tab.3":"Entfernung", "tab.4":"Bugwinkel", "tab.5":"Gegnerkurs",
+
+    "ph.0":"z. B. 0", "ph.7":"z. B. 7", "ph.8":"z. B. 8", "ph.12":"z. B. 12", "ph.24":"z. B. 24",
+    "ph.28":"z. B. 28", "ph.30":"z. B. 30", "ph.45":"z. B. 45", "ph.62":"z. B. 62",
+    "ph.134":"z. B. 134", "ph.1600":"z. B. 1600",
+
+    "side.label":"Sicht auf", "side.stb":"STB · grün", "side.bb":"BB · rot",
+    "abbr.stb":"STB", "abbr.bb":"BB",
+    "dial.tip.turn":"Nadel ziehen zum Drehen",
+    "dial.tip.set":"Nadel ziehen zum Einstellen",
+    "dial3.aria":"Bugwinkel-Scheibe: Nadel ziehen, um den Bugwinkel zu drehen",
+    "dial4.aria":"Bugwinkel-Scheibe: Silhouette ziehen, um den Bugwinkel einzustellen",
+    "dial.bow":"Bug 0°", "dial.stern":"Heck 180°",
+
+    "sw.start":"Start", "sw.stop":"Stopp", "sw.cont":"Weiter", "sw.reset":"Null",
+
+    "s2.h":"Fahrt messen",
+    "s2.hint":"U‑Boot steht. Ziel läuft mit Bug an der senkrechten Mittellinie ein — Stoppuhr bei Bug starten, bei Heck stoppen.",
+    "s2.situation":"Messsituation",
+    "s2.mode.stop":"U‑Boot steht", "s2.mode.move":"In Fahrt · Überholen",
+    "s2.len":"Schiffslänge <span class=\"sub\">(m · aus dem Erkennungsbuch)</span>",
+    "s2.swhint":"Stoppuhr — Bug an der Mittellinie: Start · Heck: Stopp",
+    "s2.time":"Zeit <span class=\"sub\">(Sekunden)</span>",
+    "s2.own":"Eigene Fahrt <span class=\"sub\">(kn · vom Fahrtmesser)</span>",
+    "s2.geo":"Geometrie zum Ziel",
+    "s2.geo.overtake":"Ich überhole — Ziel wandert achteraus",
+    "s2.geo.ahead":"Ziel zieht nach vorn",
+    "s2.geo.opposite":"Gegenkurs — entgegenkommend",
+    "s2.out":"Fahrt über Grund",
+    "s2.formula":"Fahrt = <b>Länge ÷ Zeit × 1,94</b>",
+    "s2.need":"Länge und Zeit eingeben",
+    "s2.pos":"Länge und Zeit > 0 nötig",
+    "s2.needown":"Eigene Fahrt eingeben",
+    "s2.relmeas":"Relativfahrt {0} kn gemessen",
+    "s2.own.s":"Eigene", "s2.rel.s":"Relativ",
+    "s2.sign":"Vorzeichen prüfen — Geometrie evtl. umgekehrt",
+    "s2.subrel":"Relativ {0} kn · eigene {1} kn",
+    "s2.tgtspeed":"{0} kn Gegnerfahrt",
+    "s2.note":"Länge {0} m ÷ {1} s × 1,94",
+
+    "s2b.sum":"Erweitert · Lateralmethode (Fahrt aus beliebigem AoB)",
+    "s2b.p":"Wenn das Ziel nicht quer läuft: bei <b>6×‑Zoom</b> messen, wie viele Zentiradiant ein Mast in einer bestimmten Zeit horizontal überstreicht. Ergebnis ist die Quergeschwindigkeit — im TDC dann <b>AoB 90°</b> (BB/STB je Laufrichtung) eingeben.",
+    "s2b.range":"Entfernung <span class=\"sub\">(hm = 100 m)</span>",
+    "s2b.crad":"Überstrichene Zentiradiant <span class=\"sub\">(bei 6×)</span>",
+    "s2b.time":"Zeit <span class=\"sub\">(Sekunden)</span>",
+    "s2b.out":"Quergeschwindigkeit",
+    "s2b.formula":"Fahrt = <b>0,486 × Entf.(hm) × crad ÷ Zeit</b>",
+    "s2b.tdc":"im TDC: AoB 90° · Seite nach Laufrichtung",
+
+    "s3.h":"Entfernung messen",
+    "s3.hint":"Waagerechte Mittellinie auf die Wasserlinie, senkrechte Linie am Mast — Zentiradiant von der Wasserlinie bis zur Mastspitze zählen.",
+    "s3.mast":"Masthöhe <span class=\"sub\">(m · aus dem Erkennungsbuch)</span>",
+    "s3.crad":"Höhe im Periskop <span class=\"sub\">(Zentiradiant)</span>",
+    "s3.zoom":"Vergrößerung", "s3.zoom.n":"1,5× · Normal", "s3.zoom.z":"6× · Zoom (×4)",
+    "s3.out":"Entfernung zum Ziel",
+    "s3.formula":"Entfernung = <b>Masthöhe × 100 ÷ Zentiradiant</b> <span style=\"color:var(--faint)\">· bei 6× ×4</span>",
+    "s3.need":"Masthöhe und Zentiradiant eingeben",
+    "s3.pos":"Werte > 0 nötig",
+    "s3.note":"{0} × 100 ÷ {1}",
+    "s3b.sum":"Gegenprobe · erwartete Zentiradiant aus bekannter Entfernung",
+    "s3b.mast":"Masthöhe <span class=\"sub\">(m)</span>",
+    "s3b.range":"Entfernung <span class=\"sub\">(m)</span>",
+    "s3b.out":"Erwartet bei 1,5× / 6×",
+    "s3b.sub":"normal / gezoomt bei {0} m",
+
+    "s4.h":"Bugwinkel (AoB)",
+    "s4.hint":"Peilung vom Periskopband ablesen, Zielkurs aus der Kartenplottung. Beides magnetisch, gleiche Bezugsrichtung.",
+    "s4.bear":"Peilung zum Ziel <span class=\"sub\">(magn. Grad · 0–359)</span>",
+    "s4.course":"Zielkurs <span class=\"sub\">(magn. Grad · 0–359)</span>",
+    "s4.formula":"Im TDC: Wert eingeben, Seite <b style=\"color:var(--night)\">BB rot</b> / <b style=\"color:var(--phos)\">STB grün</b> nach Anzeige.",
+    "s4.label":"Bugwinkel",
+    "s4.need":"Peilung und Kurs eingeben",
+    "s4.bowon":"Bug voraus — Ziel kommt direkt auf Sie zu",
+    "s4.sternon":"Heck — Ziel läuft direkt von Ihnen weg",
+    "s4.seeing":"Sie sehen die {0}",
+    "s4.stbside":"Steuerbordseite (grün)", "s4.bbside":"Backbordseite (rot)",
+    "s4.labelside":"Bugwinkel · {0}",
+    "s4.stb":"Steuerbord", "s4.bb":"Backbord",
+
+    "s4b.sum":"Präzise AoB per Periskop · Längen-/Höhenverhältnis",
+    "s4b.p":"Scheinbare <b>Länge</b> (waagerecht) und <b>Masthöhe</b> (senkrecht) des Ziels im Periskop in Zentiradiant messen — beide bei <b>gleicher Vergrößerung</b>. Entfernung und Zoom kürzen sich heraus, daher genauer als Schätzen. Beobachtungsperiskop für ruhiges, helles Bild; Angriffsperiskop für Tarnung und Peilband.",
+    "s4b.len":"Gemessene Länge <span class=\"sub\">(crad · waagerecht)</span>",
+    "s4b.hgt":"Gemessene Masthöhe <span class=\"sub\">(crad · senkrecht)</span>",
+    "s4b.tlen":"Wahre Schiffslänge <span class=\"sub\">(m · Erkennungsbuch)</span>",
+    "s4b.tmast":"Wahre Masthöhe <span class=\"sub\">(m · Erkennungsbuch)</span>",
+    "s4b.aspect":"Aspekt",
+    "s4b.asp.bow":"eher Bug · 0–90°", "s4b.asp.stern":"eher Heck · 90–180°",
+    "s4b.out":"Präziser Bugwinkel",
+    "s4b.need":"Alle Messwerte > 0 eingeben",
+    "s4b.formula":"sin(AoB) = <b>(Länge ÷ Höhe) × (wahre Masthöhe ÷ wahre Länge)</b>",
+    "s4b.beam":"≈ querab (Verhältnis > 1). ",
+    "s4b.enter":"Als AoB im TDC eingeben.",
+
+    "s5.h":"Gegnerkurs",
+    "s5.hint":"Peilung ablesen, Bugwinkel am Ziel schätzen (Silhouette drehen) — ergibt den Kurs des Gegners für die Vorausberechnung.",
+    "s5.bear":"Peilung zum Ziel <span class=\"sub\">(magn. Grad · 0–359)</span>",
+    "s5.aob":"Bugwinkel (AoB) <span class=\"sub\">(0–180° · Silhouette drehbar)</span>",
+    "s5.side":"Seite",
+    "s5.formula":"Kurs = <b>Peilung + 180 − AoB</b> <span style=\"color:var(--faint)\">· STB minus, BB plus</span>",
+    "s5.label":"Gegnerkurs · AoB {0} {1}°",
+    "s5.need":"Peilung und Bugwinkel eingeben",
+    "s5.needbear":"Peilung eingeben",
+    "s5.sub":"Gegner läuft Kurs {0}° · Peilung {1}°",
+
+    "s1.h":"Schiffserkennung",
+    "s1.hint":"Reihenfolge: erst Masten, dann Aufbau. Motor-/Inselfilter meist überspringen. Ans Hochscrollen in der Liste denken.",
+    "s1.code":"Mast-Code · von Bug nach Heck antippen",
+    "s1.m":"Mast", "s1.k":"Kingpost", "s1.f":"Schornstein",
+    "s1.out":"Mast-Code · Bug → Heck",
+    "s1.input":"Eingabe ins Spiel:",
+    "s1.undo":"Letzte löschen", "s1.clear":"Leeren", "s1.copy":"Kopieren",
+    "s1.copied":"Kopiert ✓", "s1.readoff":"Abgelesen",
+    "s1.legend":"<b>M</b> = Mast (alles Senkrechte außer K/F) · <b>K</b> = Kingpost (von vorn/hinten ein „H\", von der Seite ein „L\") · <b>F</b> = Schornstein (raucht, dunkel). Jedes Merkmal zählen, keins auslassen.",
+    "s1.merch":"Handelsklassen · Ship Type",
+    "s1.war":"Kriegsschiffe · ohne Filter",
+    "s1.tribal":"Tribal-Zerstörer", "s1.tribal.ab":"2 Schl · 5 Türme",
+    "s1.bittern":"Bittern-Sloop", "s1.bittern.ab":"1 Schl · 3 Türme",
+    "s1.flower":"Flower-Korvette", "s1.flower.ab":"1 Schl grau · 1 Turm",
+    "s1b.sum":"Zieldaten übernehmen · in die Rechner-Stationen",
+    "s1b.p":"Länge und größte Höhe stehen im Erkennungsbuch. Einmal hier eintragen, dann übernehmen — spart doppeltes Tippen.",
+    "s1b.name":"Schiff <span class=\"sub\">(optional, z. B. Heavy Freighter 8)</span>",
+    "s1b.name.ph":"Name / Klasse",
+    "s1b.len":"Länge <span class=\"sub\">(m)</span>",
+    "s1b.mast":"Größte Höhe / Masthöhe <span class=\"sub\">(m)</span>",
+    "s1b.btn.len":"→ Länge in Fahrt & AoB",
+    "s1b.btn.mast":"→ Masthöhe in Entfernung & AoB",
+    "s1b.btn.all":"→ Alles übernehmen",
+    "s1b.note":"Füllt Schiffslänge (02), Masthöhe (03) und die wahren Werte für die präzise AoB (04).",
+    "s1b.applied":"✓ übernommen",
+
+    "footer":"Wolfpack · Standardzoom 1,5× &nbsp;<span class=\"sep\">|</span>&nbsp; Zielzoom 6× (×4)<br>Werte immer am Ziel gegenprüfen — Erkennungsbuch ist nicht immer exakt."
+  },
+  en: {
+    "doc.title":"Wolfpack · Fire Control Calculator",
+    "lang.aria":"Sprache / Language",
+    "hdr.kicker":"U‑boat · Lead angle & firing solution",
+    "hdr.title":"Fire Control <span class=\"accent\">Calculator</span>",
+    "hdr.sub":"Five stations for <em>Wolfpack</em>: recognition · speed · range · AoB · target course. Runs fully offline.",
+    "tabs.aria":"Stations",
+    "tab.1":"Recognition", "tab.2":"Speed", "tab.3":"Range", "tab.4":"AoB", "tab.5":"Course",
+
+    "ph.0":"e.g. 0", "ph.7":"e.g. 7", "ph.8":"e.g. 8", "ph.12":"e.g. 12", "ph.24":"e.g. 24",
+    "ph.28":"e.g. 28", "ph.30":"e.g. 30", "ph.45":"e.g. 45", "ph.62":"e.g. 62",
+    "ph.134":"e.g. 134", "ph.1600":"e.g. 1600",
+
+    "side.label":"Side in view", "side.stb":"STBD · green", "side.bb":"PORT · red",
+    "abbr.stb":"STBD", "abbr.bb":"PORT",
+    "dial.tip.turn":"Drag the needle to turn",
+    "dial.tip.set":"Drag the needle to set",
+    "dial3.aria":"Angle-on-bow dial: drag the needle to turn the angle on the bow",
+    "dial4.aria":"Angle-on-bow dial: drag the silhouette to set the angle on the bow",
+    "dial.bow":"Bow 0°", "dial.stern":"Stern 180°",
+
+    "sw.start":"Start", "sw.stop":"Stop", "sw.cont":"Resume", "sw.reset":"Zero",
+
+    "s2.h":"Measure speed",
+    "s2.hint":"Boat stopped. Let the target's bow cross the vertical crosshair — start the watch at the bow, stop it at the stern.",
+    "s2.situation":"Measuring situation",
+    "s2.mode.stop":"Boat stopped", "s2.mode.move":"Under way · overtaking",
+    "s2.len":"Ship length <span class=\"sub\">(m · from the recognition manual)</span>",
+    "s2.swhint":"Stopwatch — bow on the crosshair: start · stern: stop",
+    "s2.time":"Time <span class=\"sub\">(seconds)</span>",
+    "s2.own":"Own speed <span class=\"sub\">(kn · from the log)</span>",
+    "s2.geo":"Geometry to the target",
+    "s2.geo.overtake":"I am overtaking — target drifts aft",
+    "s2.geo.ahead":"Target is pulling ahead",
+    "s2.geo.opposite":"Opposite course — closing head-on",
+    "s2.out":"Speed over ground",
+    "s2.formula":"Speed = <b>length ÷ time × 1.94</b>",
+    "s2.need":"Enter length and time",
+    "s2.pos":"Length and time must be > 0",
+    "s2.needown":"Enter own speed",
+    "s2.relmeas":"Relative speed measured: {0} kn",
+    "s2.own.s":"Own", "s2.rel.s":"Relative",
+    "s2.sign":"Check the sign — geometry may be reversed",
+    "s2.subrel":"Relative {0} kn · own {1} kn",
+    "s2.tgtspeed":"{0} kn target speed",
+    "s2.note":"Length {0} m ÷ {1} s × 1.94",
+
+    "s2b.sum":"Advanced · lateral method (speed at any AoB)",
+    "s2b.p":"When the target is not running abeam: at <b>6× zoom</b>, measure how many centiradians a mast sweeps horizontally in a given time. The result is lateral speed — then enter <b>AoB 90°</b> in the TDC (port/starboard according to the direction of travel).",
+    "s2b.range":"Range <span class=\"sub\">(hm = 100 m)</span>",
+    "s2b.crad":"Centiradians swept <span class=\"sub\">(at 6×)</span>",
+    "s2b.time":"Time <span class=\"sub\">(seconds)</span>",
+    "s2b.out":"Lateral speed",
+    "s2b.formula":"Speed = <b>0.486 × range (hm) × crad ÷ time</b>",
+    "s2b.tdc":"in the TDC: AoB 90° · side per direction of travel",
+
+    "s3.h":"Measure range",
+    "s3.hint":"Horizontal crosshair on the waterline, vertical line on the mast — count centiradians from waterline to masthead.",
+    "s3.mast":"Mast height <span class=\"sub\">(m · from the recognition manual)</span>",
+    "s3.crad":"Height in the periscope <span class=\"sub\">(centiradians)</span>",
+    "s3.zoom":"Magnification", "s3.zoom.n":"1.5× · normal", "s3.zoom.z":"6× · zoom (×4)",
+    "s3.out":"Range to target",
+    "s3.formula":"Range = <b>mast height × 100 ÷ centiradians</b> <span style=\"color:var(--faint)\">· ×4 at 6×</span>",
+    "s3.need":"Enter mast height and centiradians",
+    "s3.pos":"Values must be > 0",
+    "s3.note":"{0} × 100 ÷ {1}",
+    "s3b.sum":"Cross-check · expected centiradians from a known range",
+    "s3b.mast":"Mast height <span class=\"sub\">(m)</span>",
+    "s3b.range":"Range <span class=\"sub\">(m)</span>",
+    "s3b.out":"Expected at 1.5× / 6×",
+    "s3b.sub":"normal / zoomed at {0} m",
+
+    "s4.h":"Angle on the bow (AoB)",
+    "s4.hint":"Read the bearing off the periscope ring, take the target course from the chart plot. Both magnetic, same reference.",
+    "s4.bear":"Bearing to target <span class=\"sub\">(magnetic · 0–359)</span>",
+    "s4.course":"Target course <span class=\"sub\">(magnetic · 0–359)</span>",
+    "s4.formula":"In the TDC: enter the value, side <b style=\"color:var(--night)\">PORT red</b> / <b style=\"color:var(--phos)\">STBD green</b> as displayed.",
+    "s4.label":"Angle on bow",
+    "s4.need":"Enter bearing and course",
+    "s4.bowon":"Bow on — target is heading straight at you",
+    "s4.sternon":"Stern on — target is running straight away",
+    "s4.seeing":"You are seeing the {0}",
+    "s4.stbside":"starboard side (green)", "s4.bbside":"port side (red)",
+    "s4.labelside":"Angle on bow · {0}",
+    "s4.stb":"starboard", "s4.bb":"port",
+
+    "s4b.sum":"Precise AoB by periscope · length-to-height ratio",
+    "s4b.p":"Measure the target's apparent <b>length</b> (horizontal) and <b>mast height</b> (vertical) in the periscope, in centiradians — both at the <b>same magnification</b>. Range and zoom cancel out, so this beats eyeballing it. Use the observation scope for a steady, bright image; the attack scope for stealth and the bearing ring.",
+    "s4b.len":"Measured length <span class=\"sub\">(crad · horizontal)</span>",
+    "s4b.hgt":"Measured mast height <span class=\"sub\">(crad · vertical)</span>",
+    "s4b.tlen":"True ship length <span class=\"sub\">(m · recognition manual)</span>",
+    "s4b.tmast":"True mast height <span class=\"sub\">(m · recognition manual)</span>",
+    "s4b.aspect":"Aspect",
+    "s4b.asp.bow":"bow-ish · 0–90°", "s4b.asp.stern":"stern-ish · 90–180°",
+    "s4b.out":"Precise angle on bow",
+    "s4b.need":"Enter all measurements > 0",
+    "s4b.formula":"sin(AoB) = <b>(length ÷ height) × (true mast height ÷ true length)</b>",
+    "s4b.beam":"≈ abeam (ratio > 1). ",
+    "s4b.enter":"Enter this as AoB in the TDC.",
+
+    "s5.h":"Target course",
+    "s5.hint":"Read the bearing, estimate the angle on the bow (turn the silhouette) — gives the target's course for the intercept plot.",
+    "s5.bear":"Bearing to target <span class=\"sub\">(magnetic · 0–359)</span>",
+    "s5.aob":"Angle on bow (AoB) <span class=\"sub\">(0–180° · silhouette is draggable)</span>",
+    "s5.side":"Side",
+    "s5.formula":"Course = <b>bearing + 180 − AoB</b> <span style=\"color:var(--faint)\">· minus for STBD, plus for PORT</span>",
+    "s5.label":"Target course · AoB {0} {1}°",
+    "s5.need":"Enter bearing and angle on bow",
+    "s5.needbear":"Enter bearing",
+    "s5.sub":"Target is steering {0}° · bearing {1}°",
+
+    "s1.h":"Ship recognition",
+    "s1.hint":"Order: masts first, then superstructure. Usually skip the engine/island filters. Remember to scroll up in the list.",
+    "s1.code":"Mast code · tap from bow to stern",
+    "s1.m":"Mast", "s1.k":"Kingpost", "s1.f":"Funnel",
+    "s1.out":"Mast code · bow → stern",
+    "s1.input":"Type into the game:",
+    "s1.undo":"Delete last", "s1.clear":"Clear", "s1.copy":"Copy",
+    "s1.copied":"Copied ✓", "s1.readoff":"Read it off",
+    "s1.legend":"<b>M</b> = mast (anything vertical that is not K/F) · <b>K</b> = kingpost (an “H” from ahead/astern, an “L” from the side) · <b>F</b> = funnel (smokes, dark). Count every feature, skip none.",
+    "s1.merch":"Merchant classes · ship type",
+    "s1.war":"Warships · no filter",
+    "s1.tribal":"Tribal destroyer", "s1.tribal.ab":"2 funnels · 5 turrets",
+    "s1.bittern":"Bittern sloop", "s1.bittern.ab":"1 funnel · 3 turrets",
+    "s1.flower":"Flower corvette", "s1.flower.ab":"1 grey funnel · 1 turret",
+    "s1b.sum":"Carry target data over · into the calculator stations",
+    "s1b.p":"Length and greatest height are in the recognition manual. Enter them once here, then carry them over — saves typing twice.",
+    "s1b.name":"Ship <span class=\"sub\">(optional, e.g. Heavy Freighter 8)</span>",
+    "s1b.name.ph":"Name / class",
+    "s1b.len":"Length <span class=\"sub\">(m)</span>",
+    "s1b.mast":"Greatest height / mast height <span class=\"sub\">(m)</span>",
+    "s1b.btn.len":"→ Length into speed & AoB",
+    "s1b.btn.mast":"→ Mast height into range & AoB",
+    "s1b.btn.all":"→ Carry everything over",
+    "s1b.note":"Fills ship length (02), mast height (03) and the true values for the precise AoB (04).",
+    "s1b.applied":"✓ carried over",
+
+    "footer":"Wolfpack · default zoom 1.5× &nbsp;<span class=\"sep\">|</span>&nbsp; target zoom 6× (×4)<br>Always cross-check values against the target — the recognition manual is not always exact."
+  }
+  };
+
+  var LANG = 'de';
+  try{
+    var saved = localStorage.getItem('wp-fcc-lang');
+    if(saved==='de'||saved==='en') LANG = saved;
+    else if((navigator.language||'').toLowerCase().indexOf('de')!==0) LANG = 'en';
+  }catch(_){
+    if((navigator.language||'').toLowerCase().indexOf('de')!==0) LANG = 'en';
+  }
+
+  function T(key){
+    var d = I18N[LANG];
+    var v = (d && d[key]!=null) ? d[key] : I18N.de[key];
+    return v==null ? key : v;
+  }
+  function TF(key){
+    var s = T(key), a = arguments;
+    return s.replace(/\{(\d)\}/g, function(_,i){ var v=a[(+i)+1]; return v==null?'':v; });
+  }
+
+  /* ---------- Zahlen / numbers ---------- */
+  function num(v){ if(v==null) return NaN; return parseFloat(String(v).replace(',', '.').trim()); }
+  function fmt(x,d){
+    if(!isFinite(x)) return "—";
+    return x.toLocaleString(LANG==='de'?'de-DE':'en-GB',{minimumFractionDigits:d,maximumFractionDigits:d});
+  }
+  function decSep(){ return LANG==='de' ? ',' : '.'; }
+  function press(btns,active){ btns.forEach(function(b){ b.setAttribute('aria-pressed', b===active?'true':'false'); }); }
+
+  /* ---------- Stationen ---------- */
+  var tabs = [ $('tab-1'), $('tab-2'), $('tab-3'), $('tab-4'), $('tab-5') ];
+  var panels = [ $('p-1'), $('p-2'), $('p-3'), $('p-4'), $('p-5') ];
+  function select(i){
+    tabs.forEach(function(t,j){ t.setAttribute('aria-selected', j===i ? 'true':'false'); t.tabIndex = j===i?0:-1; });
+    panels.forEach(function(p,j){ p.classList.toggle('active', j===i); });
+  }
+  tabs.forEach(function(t,i){
+    t.tabIndex = i===0?0:-1;
+    t.addEventListener('click', function(){ select(i); });
+    t.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+        e.preventDefault();
+        var n = (i + (e.key==='ArrowRight'?1:tabs.length-1)) % tabs.length;
+        select(n); tabs[n].focus();
+      }
+    });
+  });
+
+  /* ---------- 1: Fahrt (Periskop-Timing) ---------- */
+  var sLen=$('s-len'), sTime=$('s-time'), sOut=$('s-out'), sSub=$('s-sub'), sNote=$('s-note');
+  var sOwn=$('s-own'), sMoveBox=$('s-move');
+  var sMode='stop', sGeo='overtake';
+  var sModeBtns=$('s-mode').querySelectorAll('button');
+  var sGeoBtns=$('s-geo').querySelectorAll('button');
+
+  sModeBtns.forEach(function(b){ b.addEventListener('click', function(){
+    sMode = b.getAttribute('data-mode')==='move' ? 'move' : 'stop';
+    press(sModeBtns,b);
+    sMoveBox.style.display = sMode==='move' ? '' : 'none';
+    calcSpeed();
+  }); });
+  sGeoBtns.forEach(function(b){ b.addEventListener('click', function(){
+    sGeo = b.getAttribute('data-geo'); press(sGeoBtns,b); calcSpeed();
+  }); });
+
+  function calcSpeed(){
+    var L=num(sLen.value), t=num(sTime.value);
+    if(!isFinite(L)||!isFinite(t)||L<=0||t<=0){
+      sOut.innerHTML='—<span class="ro-unit">kn</span>';
+      sSub.textContent = (sLen.value||sTime.value) ? T('s2.pos') : T('s2.need');
+      sNote.textContent=''; return;
+    }
+    var vrel = L / t * 1.94;
+
+    if(sMode==='stop'){
+      sOut.innerHTML = fmt(vrel,1)+'<span class="ro-unit">kn</span>';
+      sSub.textContent = '≈ '+fmt(L/t,2)+' m/s';
+      sNote.textContent = TF('s2.note', fmt(L,0), fmt(t,1));
+      return;
+    }
+
+    // Überholmanöver: gemessener Wert ist Relativfahrt
+    var vo=num(sOwn.value);
+    if(!isFinite(vo)||vo<0){
+      sOut.innerHTML='—<span class="ro-unit">kn</span>';
+      sSub.textContent=T('s2.needown');
+      sNote.textContent=TF('s2.relmeas', fmt(vrel,1));
+      return;
+    }
+    var vt, expl, own=T('s2.own.s'), rel=T('s2.rel.s');
+    if(sGeo==='overtake'){ vt=vo-vrel; expl=own+' '+fmt(vo,1)+' − '+rel+' '+fmt(vrel,1); }
+    else if(sGeo==='ahead'){ vt=vo+vrel; expl=own+' '+fmt(vo,1)+' + '+rel+' '+fmt(vrel,1); }
+    else { vt=vrel-vo; expl=rel+' '+fmt(vrel,1)+' − '+own+' '+fmt(vo,1); }
+
+    if(vt<0){
+      sOut.innerHTML=fmt(Math.abs(vt),1)+'<span class="ro-unit">kn</span>';
+      sSub.textContent=T('s2.sign');
+      sNote.textContent=expl+' = '+fmt(vt,1)+' kn';
+      return;
+    }
+    sOut.innerHTML=fmt(vt,1)+'<span class="ro-unit">kn</span>';
+    sSub.textContent=TF('s2.subrel', fmt(vrel,1), fmt(vo,1));
+    sNote.textContent=expl+' = '+TF('s2.tgtspeed', fmt(vt,1));
+  }
+  sLen.addEventListener('input',calcSpeed);
+  sTime.addEventListener('input',calcSpeed);
+  sOwn.addEventListener('input',calcSpeed);
+
+  /* ---------- Stoppuhr ---------- */
+  var swDisp=$('sw-disp'), swToggle=$('sw-toggle'), swReset=$('sw-reset');
+  var swRunning=false, swStart=0, swAcc=0, swRAF=null;
+  function swFormat(ms){
+    var s=ms/1000, m=Math.floor(s/60), rem=s-m*60;
+    return String(m).padStart(2,'0')+':'+rem.toFixed(1).padStart(4,'0').replace('.',decSep());
+  }
+  function swLabel(){
+    swToggle.textContent = swRunning ? T('sw.stop') : (swAcc>0 ? T('sw.cont') : T('sw.start'));
+  }
+  function swTick(){
+    var ms = swAcc + (performance.now()-swStart);
+    swDisp.textContent = swFormat(ms);
+    swRAF = requestAnimationFrame(swTick);
+  }
+  swToggle.addEventListener('click', function(){
+    if(!swRunning){
+      swRunning=true; swStart=performance.now();
+      swDisp.classList.add('run');
+      swToggle.classList.remove('go'); swToggle.classList.add('stop'); swLabel();
+      swRAF=requestAnimationFrame(swTick);
+    } else {
+      swRunning=false; cancelAnimationFrame(swRAF);
+      swAcc += performance.now()-swStart;
+      swDisp.classList.remove('run');
+      swToggle.classList.remove('stop'); swToggle.classList.add('go'); swLabel();
+      sTime.value = fmt(swAcc/1000,1); calcSpeed();
+    }
+  });
+  swReset.addEventListener('click', function(){
+    swRunning=false; cancelAnimationFrame(swRAF); swAcc=0;
+    swDisp.textContent=swFormat(0); swDisp.classList.remove('run');
+    swToggle.classList.remove('stop'); swToggle.classList.add('go'); swLabel();
+  });
+
+  /* ---------- 1b: Lateralmethode ---------- */
+  var lR=$('l-range'), lC=$('l-crad'), lT=$('l-time'), lOut=$('l-out'), lSub=$('l-sub');
+  function calcLateral(){
+    var R=num(lR.value), c=num(lC.value), t=num(lT.value);
+    if(!isFinite(R)||!isFinite(c)||!isFinite(t)||R<=0||c<=0||t<=0){
+      lOut.innerHTML='—<span class="ro-unit">kn</span>';
+      lSub.textContent=T('s3.pos'); return;
+    }
+    var kn = 0.486 * R * c / t;
+    lOut.innerHTML = fmt(kn,1)+'<span class="ro-unit">kn</span>';
+    lSub.textContent = T('s2b.tdc');
+  }
+  [lR,lC,lT].forEach(function(el){ el.addEventListener('input',calcLateral); });
+
+  /* ---------- 2: Entfernung ---------- */
+  var eMast=$('e-mast'), eCrad=$('e-crad'), eOut=$('e-out'), eSub=$('e-sub'), eNote=$('e-note');
+  var eZoomFactor=1;
+  var eZoomBtns=$('e-zoom').querySelectorAll('button');
+  eZoomBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      eZoomFactor = parseFloat(b.getAttribute('data-z'));
+      eZoomBtns.forEach(function(x){ x.setAttribute('aria-pressed', x===b?'true':'false'); });
+      calcRange();
+    });
+  });
+  function calcRange(){
+    var h=num(eMast.value), c=num(eCrad.value);
+    if(!isFinite(h)||!isFinite(c)||h<=0||c<=0){
+      eOut.innerHTML='—<span class="ro-unit">m</span>';
+      eSub.textContent=(eMast.value||eCrad.value)?T('s3.pos'):T('s3.need');
+      eNote.textContent=''; return;
+    }
+    var m = h*100/c*eZoomFactor;
+    eOut.innerHTML = fmt(m,0)+'<span class="ro-unit">m</span>';
+    eSub.textContent = fmt(m/100,1)+' hm';
+    eNote.textContent = TF('s3.note', fmt(h,0), fmt(c,1))
+                      + (eZoomFactor===4?' × 4 (6×)':(LANG==='de'?' (1,5×)':' (1.5×)'));
+  }
+  eMast.addEventListener('input',calcRange);
+  eCrad.addEventListener('input',calcRange);
+
+  /* ---------- 2b: Gegenprobe ---------- */
+  var gMast=$('g-mast'), gRange=$('g-range'), gOut=$('g-out'), gSub=$('g-sub');
+  function calcCheck(){
+    var h=num(gMast.value), r=num(gRange.value);
+    if(!isFinite(h)||!isFinite(r)||h<=0||r<=0){
+      gOut.innerHTML='—<span class="ro-unit">crad</span>'; gSub.textContent=T('s3.pos'); return;
+    }
+    var cNorm = h*100/r;        // 1,5×
+    var cZoom = cNorm*4;        // 6×
+    gOut.innerHTML = fmt(cNorm,1)+' / '+fmt(cZoom,1)+'<span class="ro-unit">crad</span>';
+    gSub.textContent = TF('s3b.sub', fmt(r,0));
+  }
+  gMast.addEventListener('input',calcCheck);
+  gRange.addEventListener('input',calcCheck);
+
+  /* ---------- Bugwinkel-Scheibe (wiederverwendbar, drehbar) ---------- */
+  function makeDial(svg, onDrag){
+    var NS='http://www.w3.org/2000/svg';
+    svg.setAttribute('viewBox','0 0 200 200');
+    function el(name,a){ var e=document.createElementNS(NS,name); for(var k in a) e.setAttribute(k,a[k]); return e; }
+
+    svg.appendChild(el('circle',{'class':'ring',cx:100,cy:100,r:92}));
+    for(var d=0; d<360; d+=15){
+      var major=(d%45===0), ro=92, ri=ro-(major?12:7), rad=d*Math.PI/180;
+      svg.appendChild(el('line',{
+        x1:(100+ri*Math.sin(rad)).toFixed(1), y1:(100-ri*Math.cos(rad)).toFixed(1),
+        x2:(100+ro*Math.sin(rad)).toFixed(1), y2:(100-ro*Math.cos(rad)).toFixed(1),
+        'class':'tick'+(major?' major':'')
+      }));
+    }
+    var hullL=el('path',{'class':'hull-port',d:'M100 46 L88 70 L88 150 L100 158 Z'});
+    var hullR=el('path',{'class':'hull-stb', d:'M100 46 L112 70 L112 150 L100 158 Z'});
+    svg.appendChild(hullL); svg.appendChild(hullR);
+    function txt(x,y,key,fill){
+      var t=el('text',{'class':'dial-lbl',x:x,y:y,'text-anchor':'middle'});
+      if(fill)t.setAttribute('fill',fill);
+      t.setAttribute('data-t',key); t.textContent=T(key); svg.appendChild(t);
+    }
+    txt(100,20,'dial.bow'); txt(100,193,'dial.stern');
+    txt(176,104,'abbr.stb','#2e6b4c'); txt(24,104,'abbr.bb','#7a3229');
+
+    var needleG=el('g',{'class':'needle-g'});
+    needleG.appendChild(el('line',{'class':'needle',x1:100,y1:100,x2:100,y2:18}));
+    needleG.appendChild(el('circle',{'class':'sub-dot',cx:100,cy:18,r:6}));
+    needleG.style.display='none';
+    svg.appendChild(needleG);
+
+    var curN=0;
+    function set(n, stb){
+      curN=n;
+      needleG.style.display='';
+      needleG.setAttribute('transform','rotate('+n+' 100 100)');
+      hullR.setAttribute('class', stb?'hull-lit-stb':'hull-stb');
+      hullL.setAttribute('class', stb?'hull-port':'hull-lit-port');
+      svg.setAttribute('aria-valuenow', Math.round(n));
+    }
+    function hide(){ needleG.style.display='none'; hullL.setAttribute('class','hull-port'); hullR.setAttribute('class','hull-stb'); svg.removeAttribute('aria-valuenow'); }
+
+    svg.setAttribute('tabindex','0'); svg.setAttribute('role','slider');
+    svg.setAttribute('aria-valuemin','-180'); svg.setAttribute('aria-valuemax','180');
+    var dragging=false;
+    function ang(e){
+      var r=svg.getBoundingClientRect();
+      var dx=e.clientX-(r.left+r.width/2), dy=e.clientY-(r.top+r.height/2);
+      if(dx===0&&dy===0) return curN;
+      return Math.round(Math.atan2(dx,-dy)*180/Math.PI);
+    }
+    svg.addEventListener('pointerdown', function(e){ dragging=true; try{svg.setPointerCapture(e.pointerId);}catch(_){} svg.classList.add('grabbing'); onDrag(ang(e)); e.preventDefault(); });
+    svg.addEventListener('pointermove', function(e){ if(dragging) onDrag(ang(e)); });
+    function endDrag(){ dragging=false; svg.classList.remove('grabbing'); }
+    svg.addEventListener('pointerup', endDrag);
+    svg.addEventListener('pointercancel', endDrag);
+    svg.addEventListener('keydown', function(e){
+      var step=e.shiftKey?5:1, nn;
+      if(e.key==='ArrowRight'||e.key==='ArrowUp') nn=curN+step;
+      else if(e.key==='ArrowLeft'||e.key==='ArrowDown') nn=curN-step;
+      else return;
+      if(nn>180)nn=180; if(nn<-180)nn=-180;
+      e.preventDefault(); onDrag(nn);
+    });
+    return { set:set, hide:hide };
+  }
+
+  /* ---------- 3: Bugwinkel (Peilung + Kurs → AoB) ---------- */
+  var aBear=$('a-bear'), aCourse=$('a-course'), aOut=$('a-out'), aSub=$('a-sub'),
+      aLabel=$('a-label'), aReadout=$('a-readout');
+
+  var dial3 = makeDial($('dial-3'), function(n){
+    if(aBear.value.trim()==='') aBear.value='0';
+    var b=num(aBear.value); if(!isFinite(b)) b=0;
+    var course=((b+180-n)%360+360)%360;
+    aCourse.value=String(Math.round(course)%360);
+    calcAoB();
+  });
+
+  function calcAoB(){
+    var b=num(aBear.value), c=num(aCourse.value);
+    if(!isFinite(b)||!isFinite(c)){
+      aOut.innerHTML='—<span class="ro-unit">°</span>';
+      aSub.textContent=T('s4.need');
+      aLabel.textContent=T('s4.label'); aLabel.className='ro-label';
+      aReadout.classList.remove('port'); aOut.className='ro-value'; aSub.className='ro-sub';
+      dial3.hide(); return;
+    }
+    var n=((b+180-c)%360+360)%360; if(n>180) n-=360;
+    var mag=Math.abs(n), stb=n>=0, desc;
+    if(mag<1) desc=T('s4.bowon');
+    else if(mag>179) desc=T('s4.sternon');
+    else desc=TF('s4.seeing', stb?T('s4.stbside'):T('s4.bbside'));
+
+    aOut.innerHTML=(stb?T('abbr.stb'):T('abbr.bb'))+' '+fmt(mag,0)+'<span class="ro-unit">°</span>';
+    aSub.textContent=desc;
+    aLabel.textContent=TF('s4.labelside', stb?T('s4.stb'):T('s4.bb'));
+    if(stb){ aReadout.classList.remove('port'); aOut.className='ro-value'; aLabel.className='ro-label'; aSub.className='ro-sub'; }
+    else   { aReadout.classList.add('port');    aOut.className='ro-value port'; aLabel.className='ro-label port'; aSub.className='ro-sub port'; }
+    dial3.set(n, stb);
+  }
+  aBear.addEventListener('input',calcAoB);
+  aCourse.addEventListener('input',calcAoB);
+
+  /* ---------- 3b: Präzise AoB per Periskop (Längen-/Höhenverhältnis) ---------- */
+  var paLen=$('pa-len'), paHgt=$('pa-hgt'), paTlen=$('pa-tlen'), paTmast=$('pa-tmast'),
+      paOut=$('pa-out'), paSub=$('pa-sub'), paReadout=paOut.parentNode;
+  var paStb=true, paBow=true;
+  var paSideBtns=$('pa-side').querySelectorAll('button');
+  var paAspBtns=$('pa-aspect').querySelectorAll('button');
+  paSideBtns.forEach(function(b){ b.addEventListener('click', function(){ paStb=(b.getAttribute('data-side')==='stb'); press(paSideBtns,b); calcPA(); }); });
+  paAspBtns.forEach(function(b){ b.addEventListener('click', function(){ paBow=(b.getAttribute('data-asp')==='bow'); press(paAspBtns,b); calcPA(); }); });
+
+  function calcPA(){
+    var Lc=num(paLen.value), Hc=num(paHgt.value), Lt=num(paTlen.value), Ht=num(paTmast.value);
+    if(!isFinite(Lc)||!isFinite(Hc)||!isFinite(Lt)||!isFinite(Ht)||Hc<=0||Lt<=0||Lc<0||Ht<0){
+      paOut.innerHTML='—<span class="ro-unit">°</span>'; paSub.textContent=T('s4b.need');
+      paReadout.classList.remove('port'); paOut.className='ro-value small'; paSub.className='ro-sub'; return;
+    }
+    var arg=(Lc/Hc)*(Ht/Lt), over=arg>1; if(arg>1) arg=1;
+    var raw=Math.asin(arg)*180/Math.PI;      // 0..90
+    var mag=paBow ? raw : 180-raw;
+    paOut.innerHTML=(paStb?T('abbr.stb'):T('abbr.bb'))+' '+fmt(mag,0)+'<span class="ro-unit">°</span>';
+    paSub.textContent=(over?T('s4b.beam'):'')+T('s4b.enter');
+    if(paStb){ paReadout.classList.remove('port'); paOut.className='ro-value small'; paSub.className='ro-sub'; }
+    else     { paReadout.classList.add('port');    paOut.className='ro-value small port'; paSub.className='ro-sub port'; }
+  }
+  [paLen,paHgt,paTlen,paTmast].forEach(function(el){ el.addEventListener('input',calcPA); });
+
+  /* ---------- 4: Gegnerkurs (Peilung + AoB → Kurs) ---------- */
+  var kBear=$('k-bear'), kAob=$('k-aob'), kOut=$('k-out'), kSub=$('k-sub'),
+      kReadout=$('k-readout'), kLabel=kReadout.querySelector('.ro-label');
+  var kMag=45, kStb=true;
+  var kSideBtns=$('k-side').querySelectorAll('button');
+  function pad3(x){ x=((Math.round(x)%360)+360)%360; return String(x).padStart(3,'0'); }
+  function syncSide(){ kSideBtns.forEach(function(b){ b.setAttribute('aria-pressed', ((b.getAttribute('data-side')==='stb')===kStb)?'true':'false'); }); }
+
+  var dial4 = makeDial($('dial-4'), function(n){
+    kStb=(n>=0); kMag=Math.min(180,Math.abs(n));
+    kAob.value=String(Math.round(kMag)); syncSide(); render4();
+  });
+  kSideBtns.forEach(function(b){ b.addEventListener('click', function(){ kStb=(b.getAttribute('data-side')==='stb'); syncSide(); render4(); }); });
+  kAob.addEventListener('input', function(){ var v=num(kAob.value); if(isFinite(v)) kMag=Math.max(0,Math.min(180,v)); render4(); });
+  kBear.addEventListener('input', render4);
+
+  function render4(){
+    var n=kStb?kMag:-kMag;
+    dial4.set(n, kStb);
+    if(kStb){ kReadout.classList.remove('port'); kOut.className='ro-value'; kLabel.className='ro-label'; kSub.className='ro-sub'; }
+    else    { kReadout.classList.add('port');    kOut.className='ro-value port'; kLabel.className='ro-label port'; kSub.className='ro-sub port'; }
+    kLabel.textContent=TF('s5.label', kStb?T('abbr.stb'):T('abbr.bb'), fmt(kMag,0));
+    var b=num(kBear.value);
+    if(!isFinite(b)){ kOut.innerHTML='—<span class="ro-unit">°</span>'; kSub.textContent=T('s5.needbear'); return; }
+    var course=((b+180-n)%360+360)%360;
+    kOut.innerHTML=pad3(course)+'<span class="ro-unit">°</span>';
+    kSub.textContent=TF('s5.sub', pad3(course), fmt(b,0));
+  }
+
+  /* ---------- 5: Schiffserkennung ---------- */
+  var mkView=$('mk-view'), mkInput=$('mk-input'), mkCode=[];
+  function renderMK(){
+    mkView.textContent = mkCode.length ? mkCode.join(' ') : '—';
+    mkInput.textContent = mkCode.length ? mkCode.join('') : '—';
+  }
+  document.querySelectorAll('.mkf-btn').forEach(function(b){
+    b.addEventListener('click', function(){ mkCode.push(b.getAttribute('data-mkf')); renderMK(); });
+  });
+  $('mk-undo').addEventListener('click', function(){ mkCode.pop(); renderMK(); });
+  $('mk-clear').addEventListener('click', function(){ mkCode=[]; renderMK(); });
+  $('mk-copy').addEventListener('click', function(){
+    var s=mkCode.join(''); if(!s) return;
+    var btn=$('mk-copy');
+    function done(msg){ btn.textContent=msg; setTimeout(function(){ btn.textContent=T('s1.copy'); },1200); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(s).then(function(){done(T('s1.copied'));}, function(){done(T('s1.readoff'));});
+    } else { done(T('s1.readoff')); }
+  });
+
+  // Zieldaten in die Rechner übernehmen
+  var knLen=$('kn-len'), knMast=$('kn-mast');
+  function flash(btn,key){
+    var orig=btn.getAttribute('data-t');
+    btn.textContent=T(key);
+    setTimeout(function(){ btn.textContent=T(orig); },1200);
+  }
+  function applyLen(){ if(knLen.value.trim()==='') return false; sLen.value=knLen.value; paTlen.value=knLen.value; calcSpeed(); calcPA(); return true; }
+  function applyMast(){ if(knMast.value.trim()==='') return false; eMast.value=knMast.value; paTmast.value=knMast.value; calcRange(); calcPA(); return true; }
+  $('kn-len-btn').addEventListener('click', function(){ if(applyLen()) flash(this,'s1b.applied'); });
+  $('kn-mast-btn').addEventListener('click', function(){ if(applyMast()) flash(this,'s1b.applied'); });
+  $('kn-all-btn').addEventListener('click', function(){ var a=applyLen(), b=applyMast(); if(a||b) flash(this,'s1b.applied'); });
+
+  /* ================= Sprache anwenden / apply language ================= */
+  var langBtns = $('lang').querySelectorAll('button');
+  function applyLang(){
+    document.documentElement.lang = LANG;
+    document.title = T('doc.title');
+
+    document.querySelectorAll('[data-t]').forEach(function(el){ el.textContent = T(el.getAttribute('data-t')); });
+    document.querySelectorAll('[data-th]').forEach(function(el){ el.innerHTML  = T(el.getAttribute('data-th')); });
+    document.querySelectorAll('[data-tp]').forEach(function(el){ el.placeholder = T(el.getAttribute('data-tp')); });
+    document.querySelectorAll('[data-ta]').forEach(function(el){ el.setAttribute('aria-label', T(el.getAttribute('data-ta'))); });
+
+    langBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-lang')===LANG ? 'true':'false'); });
+
+    // alle Anzeigen neu rendern
+    swLabel();
+    if(!swRunning) swDisp.textContent = swFormat(swAcc);
+    calcSpeed(); calcLateral(); calcRange(); calcCheck(); calcAoB(); calcPA(); render4(); renderMK();
+  }
+  langBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      LANG = b.getAttribute('data-lang')==='en' ? 'en' : 'de';
+      try{ localStorage.setItem('wp-fcc-lang', LANG); }catch(_){}
+      applyLang();
+    });
+  });
+
+  kAob.value='45';
+  applyLang();
+
+})();
+</script>
+</body>
+</html>
