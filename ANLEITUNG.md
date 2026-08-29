@@ -17,9 +17,16 @@ Die Originaldatei `..\wolfpack-feuerleitrechner.html` bleibt unverändert liegen
 
 ## Warum kein Workshop-Item?
 
-Der **Steam Workshop** ist ein Ablagesystem für Spielinhalte — Missionen, Modelle, Skins. Ein Spiel muss den Workshop aktiv unterstützen, und der Inhalt muss etwas sein, das *im Spiel* geladen wird. Wolfpack bindet keinen Workshop ein, und eine Webseite wäre auch bei einem Spiel, das ihn hat, kein ladbarer Inhalt.
+Wolfpack hat einen Steam Workshop — aber er ist ausdruecklich fuer **selbst gebaute Missionen**
+da, und beschickt wird er aus dem Spiel heraus: Hauptmenue, Punkt *Workshop*. Auf der
+Workshop-Seite steht es woertlich: *"This is the workshop for user generated missions."*
 
-Der passende Weg auf Steam ist ein **Community-Guide**. Der taucht direkt auf der Wolfpack-Shopseite unter „Guides" auf, ist durchsuchbar, kann bewertet und kommentiert werden — und lässt sich im Spiel über das Steam-Overlay aufrufen. Praktisch genau das, was ein Workshop-Item hier leisten würde.
+Eine Webseite ist keine Mission. Sie laesst sich dort weder hochladen noch von einem Spieler
+abonnieren, und das Spiel koennte damit nichts anfangen.
+
+Der passende Weg ist deshalb ein **Community-Guide**. Der taucht auf der Wolfpack-Shopseite
+unter „Guides" auf, ist durchsuchbar, kann bewertet und kommentiert werden — und laesst sich
+im Spiel ueber das Steam-Overlay aufrufen.
 
 ---
 
