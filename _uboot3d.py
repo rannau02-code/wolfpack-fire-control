@@ -46,8 +46,8 @@ elif PRESET == 'tele':       # Teleperspektive
     SEA_F, SEA_N = (1600, 900, 560), (240, 132, 82, 55)
 else:                        # nah, kurze Brennweite - die gewaehlte Fassung
     W, H = 960, 420
-    CX, CY, F, EYE, PHI, BX, BY = 452.0, 176.0, 900.0, 5.0, math.radians(25), -13.0, 33.0
-    RING = (452, 200, 188)
+    CX, CY, F, EYE, PHI, BX, BY = 560.0, 176.0, 900.0, 5.0, math.radians(25), -13.0, 33.0
+    RING = (474, 200, 188)
     SEA_F, SEA_N = (400, 220, 130), (48, 32, 24, 19)
 
 SIN, COS = math.sin(PHI), math.cos(PHI)
