@@ -36,9 +36,9 @@ import sys
 PRESET = sys.argv[1] if len(sys.argv) > 1 else 'tele'
 if PRESET == 'quadrat':      # Markenbild 500x500
     W, H = 500, 500
-    CX, CY, F, EYE, PHI, BX, BY = 285.0, 215.0, 700.0, 5.0, math.radians(25), -10.5, 33.0
+    CX, CY, F, EYE, PHI, BX, BY = 280.0, 255.0, 1100.0, 5.0, math.radians(34), -16.0, 75.0
     RING = (250, 250, 200)
-    SEA_F, SEA_N = (400, 220, 130), (52, 34, 25, 19.5, 15.5)
+    SEA_F, SEA_N = (900, 500, 300), (62, 45, 34, 27, 23)
 elif PRESET == 'tele':       # Teleperspektive
     W, H = 960, 420
     CX, CY, F, EYE, PHI, BX, BY = 452.0, 176.0, 3000.0, 5.0, math.radians(32), -14.4, 130.0
