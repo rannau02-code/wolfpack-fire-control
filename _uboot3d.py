@@ -8,9 +8,9 @@ import io, math
 
 # ---------------------------------------------------------------- Rumpfdaten
 # x = Laengsachse in Metern, 0 = Bug, Heck bei 71 (VII/C ist 67 lang,
-# das Achterschiff ist bewusst um vierzehn Meter gestreckt, sonst wirkt die
+# das Achterschiff ist bewusst stark gestreckt (101 statt 67 m), sonst wirkt die
 # Silhouette aus der Entfernung wie ein Frachter)
-XS = [0,   3,   6,   10,  15,  22,  30,  40,  53,  64,  70,  76,   81]
+XS = [0,   3,   6,   10,  15,  22,  30,  40,  59,  76,  85,  94,   101]
 WD = [0,  1.0, 1.5, 1.9, 2.1, 2.2, 2.2, 2.2, 2.1, 1.8, 1.3, 0.7, 0]   # Deckskasten, halbe Breite
 ZD = [3.4, 3.0, 2.7, 2.45,2.25,2.1, 2.0, 1.95,1.9, 1.8, 1.65,1.4, 1.2] # Deckshoehe ueber Wasser
 WH = [0,  1.6, 2.4, 3.0, 3.3, 3.45,3.45,3.4, 3.2, 2.8, 2.1, 1.1, 0]   # Rumpf an der Wasserlinie
@@ -74,11 +74,11 @@ def add(cls, dash, d, extra=''):
     P.append('<path class="%s" stroke-dasharray="%s" %s d="%s"/>' % (cls, dash, extra, d))
 
 # Deckskante Backbord (uns zugewandt) und Steuerbord (abgewandt)
-add('near', '13 8', path(curve(lambda x: (xd(x),  wd(x), zd(x)), 0, 81)))
-add('mid',  '9 8',  path(curve(lambda x: (xd(x), -wd(x), zd(x)), 0, 81)), 'opacity=".72"')
+add('near', '13 8', path(curve(lambda x: (xd(x),  wd(x), zd(x)), 0, 101)))
+add('mid',  '9 8',  path(curve(lambda x: (xd(x), -wd(x), zd(x)), 0, 101)), 'opacity=".72"')
 
 # Wasserlinie Backbord, dazu ein Stueck Steuerbord am Bug
-add('near', '14 8', path(curve(lambda x: (xw(x),  wh(x), 0), 0, 81)))
+add('near', '14 8', path(curve(lambda x: (xw(x),  wh(x), 0), 0, 101)))
 add('far',  '6 8',  path(curve(lambda x: (xw(x), -wh(x), 0), 0, 11)), 'opacity=".5"')
 
 # Steven: senkrechte Kante am Bug
@@ -86,11 +86,11 @@ add('near', '9 6', path([proj(xw(0), 0, 0), proj(0.35, 0, 0.9), proj(-0.55, 0, 1
                          proj(-1.15, 0, 2.7), proj(xd(0), 0, 3.4)]))
 
 # Satteltankwulst, knapp unter der Oberflaeche
-add('deep', '5 9', path(curve(lambda x: (x, wh(x)*1.06, -0.55), 3, 75)), 'opacity=".42"')
+add('deep', '5 9', path(curve(lambda x: (x, wh(x)*1.06, -0.55), 3, 94)), 'opacity=".42"')
 
 # Spanten: Deckskante -> Bordwand -> Wasserlinie
 sp = []
-for x in (8, 14, 21, 29, 40, 52, 63, 72):
+for x in (8, 14, 21, 29, 42, 58, 74, 88):
     sp.append(path([proj(x, wd(x), zd(x)),
                     proj(x, wh(x)*0.99, zd(x)*0.45),
                     proj(x, wh(x), 0)]))
@@ -99,7 +99,7 @@ P.append('<g class="deep" stroke-dasharray="3 6" opacity=".7">%s</g>'
 
 # Decksluken laengs
 lu = []
-for x0, x1 in ((7, 12), (16, 21), (26, 31), (58, 65)):
+for x0, x1 in ((7, 12), (16, 21), (26, 31), (64, 74)):
     lu.append(path([proj(x0, wd(x0)*0.45, zd(x0)+0.05),
                     proj(x1, wd(x1)*0.45, zd(x1)+0.05)]))
 P.append('<g class="far" stroke-dasharray="2 5" opacity=".45">%s</g>'
@@ -152,7 +152,7 @@ P.append('<circle cx="%.1f" cy="%.1f" r="4" class="far" stroke-dasharray="2.2 2.
 
 # ---- Netzabweiser
 add('wire', '2.5 6', path([proj(xd(0), 0, 3.4), proj(xc-tl+0.2, 0, tz-0.3)]), 'opacity=".8"')
-add('wire', '2.5 6', path([proj(w0+2.4, 0, wz-0.4), proj(80.4, 0, 1.4)]), 'opacity=".8"')
+add('wire', '2.5 6', path([proj(w0+2.4, 0, wz-0.4), proj(100.4, 0, 1.4)]), 'opacity=".8"')
 
 # ---------------------------------------------------------------- Bugsee
 bw = []
@@ -173,12 +173,12 @@ bw.append('<path class="mid" stroke-dasharray="5 8" opacity=".5" d="%s"/>' % pat
 P.append(''.join(bw))
 
 # ---- Heck: Deckskante und Wasserlinie laufen in der Spitze zusammen
-add('near', '6 5', path([proj(81, 0, zd(81)), proj(81.3, 0, 0.6), proj(xw(81), 0, 0)]))
+add('near', '6 5', path([proj(101, 0, zd(101)), proj(101.3, 0, 0.6), proj(xw(101), 0, 0)]))
 
 # ---- Achterschiff: Auslauf und Ruderblatt
-add('mid', '7 6', path([proj(72, wd(72), zd(72)), proj(77, wd(77)*0.8, zd(77)),
-                        proj(81, 0, 1.2)]), 'opacity=".85"')
-add('far', '4 6', path([proj(75, 0, 0.9), proj(80.5, 0, 0.7), proj(81.4, 0, -0.9)]),
+add('mid', '7 6', path([proj(88, wd(88), zd(88)), proj(95, wd(95)*0.8, zd(95)),
+                        proj(101, 0, 1.2)]), 'opacity=".85"')
+add('far', '4 6', path([proj(94, 0, 0.9), proj(100.5, 0, 0.7), proj(101.4, 0, -0.9)]),
     'opacity=".6"')
 
 # ---------------------------------------------------------------- Kielwasser
@@ -186,7 +186,7 @@ kw = []
 for sgn, op, dash in ((1, '.3', '11 12'), (-1, '.3', '11 12'),
                       (1, '.16', '7 16'), (-1, '.16', '7 16')):
     spread = 1.6 if abs(op == '.4') else 3.4
-    pts = [proj(81 + i*9.0, sgn*(1.2 + i*(2.2 if op == '.4' else 4.0)), 0)
+    pts = [proj(101 + i*9.0, sgn*(1.2 + i*(2.2 if op == '.4' else 4.0)), 0)
            for i in range(10)]
     kw.append('<path class="far" stroke-dasharray="%s" opacity="%s" d="%s"/>'
               % (dash, op, path(pts)))
